@@ -195,3 +195,127 @@ CREATE TABLE answer_comment (
     FOREIGN KEY (id_user) REFERENCES user (id),
     FOREIGN KEY (id_answer) REFERENCES answer (id)
 );
+
+-- Triggers
+
+-- BR01
+CREATE TRIGGER prevent_self_vote_on_question
+BEFORE INSERT ON question_vote
+FOR EACH ROW
+BEGIN
+  IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot vote on your own question';
+  END IF;
+END;
+
+CREATE TRIGGER prevent_self_vote_on_answer
+BEFORE INSERT ON answer_vote
+FOR EACH ROW
+BEGIN
+  IF NEW.id_user = (SELECT id_user FROM answer WHERE id = NEW.id_answer) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot vote on your own answer';
+  END IF;
+END;
+
+--BR02
+CREATE TRIGGER prevent_self_answer
+BEFORE INSERT ON answer
+FOR EACH ROW
+BEGIN
+  IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot answer your own question';
+  END IF;
+END;
+
+-- BR03
+CREATE TRIGGER prevent_self_comment_on_question
+BEFORE INSERT ON question_comment
+FOR EACH ROW
+BEGIN
+  IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot comment on your own question';
+  END IF;
+END;
+
+CREATE TRIGGER prevent_self_comment_on_answer
+BEFORE INSERT ON answer_comment
+FOR EACH ROW
+BEGIN
+  IF NEW.id_user = (SELECT id_user FROM answer WHERE id = NEW.id_answer) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot comment on your own answer';
+  END IF;
+END;
+
+-- BR04
+CREATE TRIGGER update_content_on_user_delete
+BEFORE DELETE ON user
+FOR EACH ROW
+BEGIN
+  DECLARE anonymous_user_id INT;
+  SET anonymous_user_id = (SELECT id FROM user WHERE username = CONCAT('anonymous', OLD.id));
+
+  UPDATE question SET id_user = anonymous_user_id WHERE id_user = OLD.id;
+  UPDATE answer SET id_user = anonymous_user_id WHERE id_user = OLD.id;
+  UPDATE question_comment SET id_user = anonymous_user_id WHERE id_user = OLD.id;
+  UPDATE answer_comment SET id_user = anonymous_user_id WHERE id_user = OLD.id;
+END;
+
+
+-- BR05
+CREATE PROCEDURE calculate_user_rating(IN user_id INT, IN community_id INT)
+BEGIN
+  DECLARE total_likes INT;
+  DECLARE total_dislikes INT;
+  DECLARE rating INT;
+
+  SELECT COUNT(*) INTO total_likes FROM answer_vote
+  JOIN answer ON answer_vote.id_answer = answer.id
+  WHERE answer.id_user = user_id AND answer.id_community = community_id AND answer_vote.like = TRUE;
+
+  SELECT COUNT(*) INTO total_dislikes FROM answer_vote
+  JOIN answer ON answer_vote.id_answer = answer.id
+  WHERE answer.id_user = user_id AND answer.id_community = community_id AND answer_vote.like = FALSE;
+
+  SET rating = 1000 * total_likes / (total_likes + total_dislikes);
+
+  UPDATE reputation SET rating = rating WHERE id_user = user_id AND id_community = community_id;
+END;
+
+-- BR06
+CREATE TRIGGER check_expert_status
+AFTER INSERT, UPDATE ON reputation
+FOR EACH ROW
+BEGIN
+    DECLARE total_badges INT;
+    DECLARE user_badges INT;
+
+    SELECT COUNT(*) INTO total_badges FROM badge;
+    SELECT COUNT(*) INTO user_badges FROM user_earns_badge WHERE id_user = NEW.id_user;
+
+    IF total_badges = user_badges AND NEW.rating > 800 THEN
+        UPDATE reputation SET expert = TRUE WHERE id_user = NEW.id_user AND id_community = NEW.id_community;
+    ELSE
+        UPDATE reputation SET expert = FALSE WHERE id_user = NEW.id_user AND id_community = NEW.id_community;
+    END IF;
+END;
+
+-- BR07
+
+-- BR08
+CREATE TRIGGER check_vote_before_insert_on_question_vote
+BEFORE INSERT ON question_vote
+FOR EACH ROW
+BEGIN
+    IF EXISTS (SELECT 1 FROM question_vote WHERE id_question = NEW.id_question AND id_user = NEW.id_user) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Each user can only vote once on each post.';
+    END IF;
+END;
+
+CREATE TRIGGER check_vote_before_insert_on_answer_vote
+BEFORE INSERT ON answer_vote
+FOR EACH ROW
+BEGIN
+    IF EXISTS (SELECT 1 FROM answer_vote WHERE id_answer = NEW.id_answer AND id_user = NEW.id_user) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Each user can only vote once on each post.';
+    END IF;
+END;
