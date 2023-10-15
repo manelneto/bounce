@@ -268,33 +268,35 @@ Aliás, em cada relação, o atributo iniciado por *id* é a chave primária da 
 
 ## A6: Índices, Gatilhos, Transações e População da Base de Dados Indexes
 
-> Brief presentation of the artifact goals.
+Este artefacto engloba a identificação e descrição dos índices, o suporte das regras de integridade dos dados usando triggers, a caracterização das transações da base de dados e a definição das funções definidas pelo utilizador na base de dados.
+
+Este documento inclui também o script da criação da base de dados, incluindo o código SQL necessário para especificar as restrições de integridade, índices, gatilhos e transações.
+
 
 ### 1. Carga de Trabalho da Base de Dados
  
-> A study of the predicted system load (database load).
-> Estimate of tuples at each relation.
+O esquema físico da base de dados inclui uma análise da carga prevista do sistema, que abrange uma estimativa do número de tuples em cada relação e o seu crescimento, sendo essencial compreender o crescimento de uma tabela para desenvolver uma base de dados com um design sólido.
 
 | **Referência da Relação** | **Nome da Relação** | **Ordem de Magnitude** | **Crescimento Estimado** |
 | ------------------------- | ------------------- | ---------------------- | ------------------------ |
-| R01 | user | | |
-| R02 | notification | | |
-| R03 | badge | | |
-| R04 | user_earns_badge | | |
-| R05 | tag | | |
-| R06 | user_follows_tag | | |
-| R07 | community | | |
-| R08 | user_follows_community | | |
-| R09 | user_moderates_community | | |
-| R10 | reputation | | |
-| R11 | question | | |
-| R12 | user_follows_question | | |
-| R13 | question_tags | | |
-| R14 | question_vote | | |
-| R15 | question_comment | | |
-| R16 | answer | | |
-| R17 | answer_vote | | |
-| R18 | answer_comment | | |
+| R01 | user | 10k | 10 |
+| R02 | notification | 1k | 1k |
+| R03 | badge | 10 | 10 |
+| R04 | user_earns_badge | 10k | 100 |
+| R05 | tag | 1k | 100 |
+| R06 | user_follows_tag | 100 | 10 |
+| R07 | community | 100 | 10 |
+| R08 | user_follows_community | 100 | 10 |
+| R09 | user_moderates_community | 100 | 10 |
+| R10 | reputation | 1k | 100 |
+| R11 | question | 10k | 1k |
+| R12 | user_follows_question | 1k | 100 |
+| R13 | question_tags | 100 | 10 |
+| R14 | question_vote | 100 | 10 |
+| R15 | question_comment | 1k | 100 |
+| R16 | answer | 1k | 100 |
+| R17 | answer_vote | 1k | 100 |
+| R18 | answer_comment | 1k | 100 |
 
 Tabela 22 - Carga de Trabalho da Base de Dados
 
