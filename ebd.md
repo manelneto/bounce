@@ -231,10 +231,9 @@ Tabela 18 - Validação da Relação *question_comment*
 
 | **TABELA R16** | answer |
 | -------------- | ------ |
-| **Chaves** | {id}, {correct, id_question} |
+| **Chaves** | {id} |
 | **Dependências Funcionais** |
 | FD1601 | {id} → {content, date, file, last_edited, correct, id_user, id_question} |
-| FD1602 | {correct, id_question} → {id, content, date, file, last_edited, id_user} |
 | **FORMA NORMAL** | BCNF |
 
 Tabela 19 - Validação da Relação *answer*
