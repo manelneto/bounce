@@ -277,7 +277,7 @@ Este documento inclui também o script da criação da base de dados, incluindo 
  
 O esquema físico da base de dados inclui uma análise da carga prevista do sistema, que abrange uma estimativa do número de tuples em cada relação e o seu crescimento, sendo essencial compreender o crescimento de uma tabela para desenvolver uma base de dados com um design sólido.
 
-| **Referência da Relação** | **Nome da Relação** | **Ordem de Magnitude** | **Crescimento Estimado** |
+| **Referência da Relação** | **Nome da Relação** | **Ordem de Magnitude** | **Crescimento Estimado por dia** |
 | ------------------------- | ------------------- | ---------------------- | ------------------------ |
 | R01 | user | 10k | 10 |
 | R02 | notification | 1k | 1k |
