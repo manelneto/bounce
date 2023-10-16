@@ -22,14 +22,14 @@ As restrições e regras de negócio que não puderam ser incluídas no diagrama
 
 | Identificador | Descrição |
 | ------------- | --------- |
-| BR01 | Nenhum utilizador autenticado (*Authenticated*) pode votar (*Vote*) numa publicação (*Post*) da qual é autor
-| BR02 | Nenhum utilizador autenticado (*Authenticated*) pode publicar uma resposta (*Answer*) numa pergunta (*Question*) da qual é autor
-| BR03 | Nenhum utilizador autenticado (*Authenticated*) pode publicar um comentário (*Comment*) numa publicação (*Post*) da qual é autor
-| BR04 | Se um utilizador autenticado (*Authenticated*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo |
-| BR05 | O *rating* de um utilizador autenticado (*Authenticated*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade |
-| BR06 | Um utilizador autenticado (*Authenticated*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 |
+| BR01 | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa publicação (*Post*) da qual é autor
+| BR02 | Nenhum utilizador autenticado (*User*) pode publicar uma resposta (*Answer*) numa pergunta (*Question*) da qual é autor
+| BR03 | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa publicação (*Post*) da qual é autor
+| BR04 | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo |
+| BR05 | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade |
+| BR06 | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 |
 | BR07 | Os ficheiros (*file*) das publicações (*Post*) devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* |
-| BR08 | Cada utilizador autenticado (*Authenticated*) só pode votar (*Vote*) em cada publicação (*Post*) uma vez
+| BR08 | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada publicação (*Post*) uma vez
 
 Tabela 1 - Regras de Negócio Adicionais
 
@@ -529,17 +529,131 @@ Note-se que as funções ```answer_search_update()```, ```question_comment_searc
 
 ### 3. Gatilhos
  
-> User-defined functions and trigger procedures that add control structures to the SQL language or perform complex computations, are identified and described to be trusted by the database server. Every kind of function (SQL functions, Stored procedures, Trigger procedures) can take base types, composite types, or combinations of these as arguments (parameters). In addition, every kind of function can return a base type or a composite type. Functions can also be defined to return sets of base or composite values.  
+Os triggers desempenham um papel crucial na automatização de processos e na manutenção da integridade dos dados em sistemas de gestão de base de dados, garantindo a execução de ações específicas em resposta a eventos predefinidos.
+
 
 | **Trigger**      | TRIGGER01                              |
 | ---              | ---                                    |
-| **Description**  | Trigger description, including reference to the business rules involved |
-| `SQL code`                                             ||
+| **Description**  | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa pergunta da qual é autor - **BR01** |
+| `SQL code`       |                                        |
 
+Tabela 30 - Trigger para verificar *votos* numa *pergunta*
+
+| **Trigger**      | TRIGGER02                              |
+| ---              | ---                                    |
+| **Description**  | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa resposta da qual é autor - **BR01** |
+| `SQL code`       |                                        |
+
+Tabela 31 - Trigger para verificar *votos* numa *resposta*
+
+| **Trigger**      | TRIGGER03                              |
+| ---              | ---                                    |
+| **Description**  | Nenhum utilizador autenticado (*User*) pode publicar uma resposta (*Answer*) numa pergunta (*Question*) da qual é autor - **BR02** |
+| `SQL code`       |                                        |
+
+Tabela 32 - Trigger para verificar *respostas* numa *pergunta*
+
+| **Trigger**      | TRIGGER04                              |
+| ---              | ---                                    |
+| **Description**  | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa pergunta da qual é autor - **BR03** |
+| `SQL code`       |                                        |
+
+Tabela 33 - Trigger para verificar *comentários* numa *pergunta*
+
+| **Trigger**      | TRIGGER05                              |
+| ---              | ---                                    |
+| **Description**  | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa resposta da qual é autor - **BR03** |
+| `SQL code`       |                                        |
+
+Tabela 34 - Trigger para verificar *comentários* numa *resposta*
+
+| **Trigger**      | TRIGGER06                            |
+| ---              | ---                                    |
+| **Description**  | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo - **BR04** |
+| `SQL code`       |                                        |
+
+Tabela 35 - Trigger para *utilizadores apagados*
+
+| **Trigger**      | TRIGGER07                              |
+| ---              | ---                                    |
+| **Description**  | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade - **BR05** |
+| `SQL code`       |                                        |
+
+Tabela 36 - Trigger para calcular *rating*
+
+| **Trigger**      | TRIGGER08                              |
+| ---              | ---                                    |
+| **Description**  | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 - **BR06** |
+| `SQL code`       |                                        |
+
+Tabela 37 - Trigger para verificar *experts*
+
+| **Trigger**      | TRIGGER09                              |
+| ---              | ---                                    |
+| **Description**  | Os ficheiros (*file*) das perguntas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR07** |
+| `SQL code`       |                                        |
+
+Tabela 38 - Trigger para verificar *extensões de ficheiros* nas *perguntas*
+
+| **Trigger**      | TRIGGER10                              |
+| ---              | ---                                    |
+| **Description**  | Os ficheiros (*file*) das respostas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR07** |
+| `SQL code`       |                                        |
+
+Tabela 39 - Trigger para verificar *extensões de ficheiros* nas *respostas*
+
+| **Trigger**      | TRIGGER011                              |
+| ---              | ---                                    |
+| **Description**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada pergunta uma vez - **BR08** |
+| `SQL code`       |                                        |
+
+Tabela 40 - Trigger para verificar *votação única* nas *perguntas*
+
+| **Trigger**      | TRIGGER012                             |
+| ---              | ---                                    |
+| **Description**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada resposta uma vez - **BR08** |
+| `SQL code`       |                                        |
+
+Tabela 41 - Trigger para verificar *votação única* nas *respostas*
+
+| **Trigger**      | TRIGGER013                             |
+| ---              | ---                                    |
+| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de respostas às próprias perguntas |
+| `SQL code`       |                                        |
+
+Tabela 42 - Trigger para verificar *notificação de resposta* nas *próprias perguntas*
+
+| **Trigger**      | TRIGGER014                             |
+| ---              | ---                                    |
+| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de votos às próprias perguntas |
+| `SQL code`       |                                        |
+
+Tabela 43 - Trigger para verificar *notificação de votos* nas *próprias perguntas*
+
+| **Trigger**      | TRIGGER015                             |
+| ---              | ---                                    |
+| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias perguntas |
+| `SQL code`       |                                        |
+
+Tabela 44 - Trigger para verificar *notificação de comentários* nas *próprias perguntas*
+
+| **Trigger**      | TRIGGER016                             |
+| ---              | ---                                    |
+| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias respostas |
+| `SQL code`       |                                        |
+
+Tabela 45 - Trigger para verificar *notificação de comentários* nas *próprias respostas*
+
+| **Trigger**      | TRIGGER017                             |
+| ---              | ---                                    |
+| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de atribuição de emblemas |
+| `SQL code`       |                                        |
+
+Tabela 46 - Trigger para verificar a *atribuição de emblemas*
 
 ### 4. Transações
  
-> Transactions needed to assure the integrity of the data.  
+As transações desempenham um papel crucial na garantia da integridade e da consistência dos dados, permitindo que múltiplos utilizadores acedam e modifiquem as mesmas informações de forma segura e coordenada.
 
 | SQL Reference   | Transaction Name                    |
 | --------------- | ----------------------------------- |
