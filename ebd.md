@@ -268,35 +268,34 @@ Aliás, em cada relação, o atributo iniciado por *id* é a chave primária da 
 
 ## A6: Índices, Gatilhos, Transações e População da Base de Dados Indexes
 
-Este artefacto engloba a identificação e descrição dos índices, o suporte das regras de integridade dos dados usando triggers, a caracterização das transações da base de dados e a definição das funções definidas pelo utilizador na base de dados.
-
-Este documento inclui também o script da criação da base de dados, incluindo o código SQL necessário para especificar as restrições de integridade, índices, gatilhos e transações.
+Este artefacto engloba a carga de trabalho da base de dados, a especificação dos índices, dos gatilhos, das transações e das funções definidas pelo utilizador, bem como os *scripts* para criação da base de dados e para o seu povoamento. Deste modo, o documento contém tudo aquilo que é necessário para a implementação da base de dados.
 
 
 ### 1. Carga de Trabalho da Base de Dados
- 
-O esquema físico da base de dados inclui uma análise da carga prevista do sistema, que abrange uma estimativa do número de tuples em cada relação e o seu crescimento, sendo essencial compreender o crescimento de uma tabela para desenvolver uma base de dados com um design sólido.
 
-| **Referência da Relação** | **Nome da Relação** | **Ordem de Magnitude** | **Crescimento Estimado por dia** |
-| ------------------------- | ------------------- | ---------------------- | ------------------------ |
-| R01 | user | 10k | 10 |
-| R02 | notification | 1k | 1k |
-| R03 | badge | 10 | 10 |
-| R04 | user_earns_badge | 10k | 100 |
-| R05 | tag | 1k | 100 |
-| R06 | user_follows_tag | 100 | 10 |
-| R07 | community | 100 | 10 |
-| R08 | user_follows_community | 100 | 10 |
-| R09 | user_moderates_community | 100 | 10 |
-| R10 | reputation | 1k | 100 |
-| R11 | question | 10k | 1k |
-| R12 | user_follows_question | 1k | 100 |
-| R13 | question_tags | 100 | 10 |
-| R14 | question_vote | 100 | 10 |
-| R15 | question_comment | 1k | 100 |
-| R16 | answer | 1k | 100 |
-| R17 | answer_vote | 1k | 100 |
-| R18 | answer_comment | 1k | 100 |
+
+O esquema físico da base de dados inclui - na tabela abaixo - uma análise da carga estimada do sistema, nomeadamente através de uma previsão do número aproximado de linhas em cada tabela e do seu crescimento esperado, sendo essencial compreender a ordem de grandeza e o crescimento das relações de modo a desenvolver uma base de dados sólida e eficiente.
+
+| **Referência da Relação** | **Nome da Relação** | **Ordem de Magnitude** | **Crescimento Estimado (por dia)** |
+| ------------------------- | ------------------- | ---------------------- | ---------------------------------- |
+| R01 | user | 10 k | 10 |
+| R02 | notification | 100 k | 100 |
+| R03 | badge | 10 | 1 |
+| R04 | user_earns_badge | 10 k | 10 |
+| R05 | tag | 1 k | 1 |
+| R06 | user_follows_tag | 1 k | 10 |
+| R07 | community | 100 | 1 |
+| R08 | user_follows_community | 10 k | 10 |
+| R09 | user_moderates_community | 100 | 1 |
+| R10 | reputation | 10 k | 10 |
+| R11 | question | 10 k | 10 |
+| R12 | user_follows_question | 1 k | 10 |
+| R13 | question_tags | 10 k | 10 |
+| R14 | question_vote | 100 k | 100 |
+| R15 | question_comment | 1 k | 10 |
+| R16 | answer | 10 k | 10 |
+| R17 | answer_vote | 100 k | 100 |
+| R18 | answer_comment | 1 k | 10 |
 
 Tabela 22 - Carga de Trabalho da Base de Dados
 
@@ -305,30 +304,227 @@ Tabela 22 - Carga de Trabalho da Base de Dados
 
 #### 2.1. Índices de Desempenho
  
-> Indices proposed to improve performance of the identified queries.
+Nas três tabelas abaixo propõem-se os índices a implementar de maneira a melhorar o desempenho das consultas à base de dados.
 
-| **Index**           | IDX01                                  |
-| ---                 | ---                                    |
-| **Relation**        | Relation where the index is applied    |
-| **Attribute**       | Attribute where the index is applied   |
-| **Type**            | B-tree, Hash, GiST or GIN              |
-| **Cardinality**     | Attribute cardinality: low/medium/high |
-| **Clustering**      | Clustering of the index                |
-| **Justification**   | Justification for the proposed index   |
-| `SQL code`                                                  ||
+| **Índice** | IDX01 |
+| ---------- | ----- |
+| **Relação** | notification |
+| **Atributo** | id_user |
+| **Tipo** | Hash |
+| **Cardinalidade** | Média |
+| **Agrupamento** | Não |
+| **Justificação** | A tabela *notification* é muito grande (estima-se que tenha muitas entradas) e atualizada frequentemente, pelo que a importância da existência de um índice é acrescida. Como as consultas são feitas, em princípio, para um dado utilizador e a ordenação necessária é apenas por data (dentro do mesmo utilizador), o índice mais relevante é do tipo hash. Não se propõe agrupamento da tabela devido à estimativa elevada para a sua frequência de crescimento. |
+| **Código SQL** | |
+```sql
+CREATE INDEX user_notification ON notification USING hash (id_user)
+```
+
+Tabela 22 - Índice para a Relação *notification*
+
+| **Índice** | IDX02 |
+| ---------- | ----- |
+| **Relação** | question |
+| **Atributo** | id_community |
+| **Tipo** | B-tree |
+| **Cardinalidade** | Média |
+| **Agrupamento** | Sim |
+| **Justificação** | A tabela *question* será relativamente grande, mas a frequência de atualização deve ser baixa. A par disto, as operações de pesquisa e ordenação poderão ser bastante frequentes. Como tal, um índice do tipo b-tree afigura-se o mais apropriado, sobre o atributo *id_community* porque, numa porção significativa dos casos, as consultas são efetuadas a perguntas inseridas numa comunidade. Também por este motivo - e tendo em conta que não se estima que a tabela seja atualizada muito frequentemente (e a cardinalidade é média) -, propõe-se agrupamento das entradas da mesma. |
+| **Código SQL** | |
+```sql
+CREATE INDEX community_question ON question USING btree (id_community);
+CLUSTER question USING community_question;
+```
+
+Tabela 23 - Índice para a Relação *question*
+
+| **Índice** | IDX03 |
+| ---------- | ----- |
+| **Relação** | question_vote |
+| **Atributo** | id_question |
+| **Tipo** | Hash |
+| **Cardinalidade** | Média |
+| **Agrupamento** | Não |
+| **Justificação** | Estima-se que tabela *question_vote* tenha muitas entradas e cresça com grande frequência. Contudo, esta tabela apenas é relevante para contar o número (e tipo) de votos numa questão, bem como o utilizador que os efetuou (de maneira a impedir votos duplicados). Deste modo, as comparações efetuadas nas consultas à base de dados são apenas de igualdade e não existe necessidade de ordenação, pelo que um índice do tipo hash é o mais adequado. Para além de não funcionar com índices deste tipo, não é interessante fazer agrupamento dos dados dado que a tabela é atualizada frequentemente, com novos votos. |
+| **Código SQL** | |
+```sql
+CREATE INDEX question_question_vote ON question_vote USING hash (id_question);
+```
+
+Tabela 24 - Índice para a Relação *question_vote*
+
+Note-se que, dadas as semelhanças entre as relações *question* e *answer*, bem como *question_vote* e *answer_vote*, os índices a implementar para as primeiras tabelas também poderiam ser implementados para as segundas (com as devidas adaptações, mas pelos mesmos motivos).
 
 #### 2.2. Índices para *Full-Text Search*
 
-> The system being developed must provide full-text search features supported by PostgreSQL. Thus, it is necessary to specify the fields where full-text search will be available and the associated setup, namely all necessary configurations, indexes definitions and other relevant details.  
+O sistema a desenvolver deve permitir *full-text search*, pelo que é necessário definir os índices e especificar os campos dos documentos sobre os quais eles operam. Tais definições/especificações e respetivas configurações necessárias encontram-se nas tabelas abaixo.
 
-| **Index**           | IDX01                                  |
-| ---                 | ---                                    |
-| **Relation**        | Relation where the index is applied    |
-| **Attribute**       | Attribute where the index is applied   |
-| **Type**            | B-tree, Hash, GiST or GIN              |
-| **Clustering**      | Clustering of the index                |
-| **Justification**   | Justification for the proposed index   |
-| `SQL code`                                                  ||
+| **Índice** | IDX11 |
+| ---------- | ----- |
+| **Relação** | question |
+| **Atributos** | title, content |
+| **Tipo** | GIN |
+| **Agrupamento** | Não |
+| **Justificação** | Este índice é necessário para efetuar *full-text search* sobre perguntas, incluindo o seu título e conteúdo. O tipo do índice é GIN porque, pese embora estes campos sejam editáveis, não é esperado que sejam atualizados frequentemente - é mais importante uma pesquisa rápida do que uma atualização rápida. |
+| **Código SQL** | |
+```sql
+-- Adicionar à tabela question uma coluna para armazenar os ts_vectors computados
+ALTER TABLE question
+ADD COLUMN tsvectors TSVECTOR;
+
+-- Criar uma função para atualizar automaticamente os ts_vectors
+CREATE FUNCTION question_search_update() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.tsvectors = (
+            setweight(to_tsvector('english', NEW.title), 'A') ||
+            setweight(to_tsvector('english', NEW.content), 'B')
+        );
+    END IF;
+    IF TG_OP = 'UPDATE' THEN
+        IF (NEW.title <> OLD.title OR NEW.content <> OLD.content) THEN
+            NEW.tsvectors = (
+                setweight(to_tsvector('english', NEW.title), 'A') ||
+                setweight(to_tsvector('english', NEW.content), 'B')
+            );
+        END IF;
+    END IF;
+    RETURN NEW;
+END $$
+LANGUAGE plpgsql;
+
+-- Criar um gatilho para executar antes de inserções e atualizações na tabela question
+CREATE TRIGGER question_search_update
+    BEFORE INSERT OR UPDATE ON question
+    FOR EACH ROW
+    EXECUTE PROCEDURE question_search_update();
+
+-- Criar um índice GIN para os ts_vectors
+CREATE INDEX question_search_idx ON question USING GIN (tsvectors);
+```
+
+Tabela 26 - Índice para *Full-Text Search* sobre a Relação *question*
+
+| **Índice** | IDX12 |
+| ---------- | ----- |
+| **Relação** | answer |
+| **Atributo** | content |
+| **Tipo** | GIN |
+| **Agrupamento** | Não |
+| **Justificação** | Este índice é necessário para efetuar *full-text search* sobre respostas, nomeadamente sobre o seu conteúdo. O tipo do índice é GIN porque, pese embora as respostas sejam editáveis, não é esperado que essa edição seja frequente - é mais importante uma pesquisa rápida do que uma atualização rápida. |
+| **Código SQL** | |
+```sql
+-- Adicionar à tabela answer uma coluna para armazenar os ts_vectors computados
+ALTER TABLE answer
+ADD COLUMN tsvectors TSVECTOR;
+
+-- Criar uma função para atualizar automaticamente os ts_vectors
+CREATE FUNCTION answer_search_update() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.tsvectors = to_tsvector('english', NEW.content);
+    END IF;
+    IF TG_OP = 'UPDATE' THEN
+        IF NEW.content <> OLD.content THEN
+            NEW.tsvectors = to_tsvector('english', NEW.content);
+        END IF;
+    END IF;
+    RETURN NEW;
+END $$
+LANGUAGE plpgsql;
+
+-- Criar um gatilho para executar antes de inserções e atualizações na tabela question
+CREATE TRIGGER answer_search_update
+    BEFORE INSERT OR UPDATE ON answer
+    FOR EACH ROW
+    EXECUTE PROCEDURE answer_search_update();
+
+-- Criar um índice GIN para os ts_vectors
+CREATE INDEX answer_search_idx ON answer USING GIN (tsvectors);
+```
+
+Tabela 27 - Índice para *Full-Text Search* sobre a Relação *answer*
+
+| **Índice** | IDX13 |
+| ---------- | ----- |
+| **Relação** | question_comment |
+| **Atributo** | content |
+| **Tipo** | GIN |
+| **Agrupamento** | Não |
+| **Justificação** | Este índice é necessário para efetuar *full-text search* sobre comentários em perguntas, nomeadamente sobre o seu conteúdo. O tipo do índice é GIN porque, pese embora os comentários sejam editáveis, não é esperado que essa edição seja frequente - é mais importante uma pesquisa rápida do que uma atualização rápida. |
+| **Código SQL** | |
+```sql
+-- Adicionar à tabela question_comment uma coluna para armazenar os ts_vectors computados
+ALTER TABLE question_comment
+ADD COLUMN tsvectors TSVECTOR;
+
+-- Criar uma função para atualizar automaticamente os ts_vectors
+CREATE FUNCTION question_comment_search_update() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.tsvectors = to_tsvector('english', NEW.content);
+    END IF;
+    IF TG_OP = 'UPDATE' THEN
+        IF NEW.content <> OLD.content THEN
+            NEW.tsvectors = to_tsvector('english', NEW.content);
+        END IF;
+    END IF;
+    RETURN NEW;
+END $$
+LANGUAGE plpgsql;
+
+-- Criar um gatilho para executar antes de inserções e atualizações na tabela question
+CREATE TRIGGER question_comment_search_update
+    BEFORE INSERT OR UPDATE ON question_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE question_comment_search_update();
+
+-- Criar um índice GIN para os ts_vectors
+CREATE INDEX question_comment_search_idx ON question_comment USING GIN (tsvectors);
+```
+
+Tabela 28 - Índice para *Full-Text Search* sobre a Relação *question_comment*
+
+| **Índice** | IDX14 |
+| ---------- | ----- |
+| **Relação** | answer_comment |
+| **Atributo** | content |
+| **Tipo** | GIN |
+| **Agrupamento** | Não |
+| **Justificação** | Este índice é necessário para efetuar *full-text search* sobre comentários em respostas, nomeadamente sobre o seu conteúdo. O tipo do índice é GIN porque, pese embora os comentários sejam editáveis, não é esperado que essa edição seja frequente - é mais importante uma pesquisa rápida do que uma atualização rápida. |
+| **Código SQL** | |
+```sql
+-- Adicionar à tabela answer_comment uma coluna para armazenar os ts_vectors computados
+ALTER TABLE answer_comment
+ADD COLUMN tsvectors TSVECTOR;
+
+-- Criar uma função para atualizar automaticamente os ts_vectors
+CREATE FUNCTION answer_comment_search_update() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.tsvectors = to_tsvector('english', NEW.content);
+    END IF;
+    IF TG_OP = 'UPDATE' THEN
+        IF NEW.content <> OLD.content THEN
+            NEW.tsvectors = to_tsvector('english', NEW.content);
+        END IF;
+    END IF;
+    RETURN NEW;
+END $$
+LANGUAGE plpgsql;
+
+-- Criar um gatilho para executar antes de inserções e atualizações na tabela question
+CREATE TRIGGER answer_comment_search_update
+    BEFORE INSERT OR UPDATE ON answer_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE answer_comment_search_update();
+
+-- Criar um índice GIN para os ts_vectors
+CREATE INDEX answer_comment_search_idx ON answer_comment USING GIN (tsvectors);
+```
+
+Tabela 29 - Índice para *Full-Text Search* sobre a Relação *answer_comment*
+
+Note-se que as funções ```answer_search_update()```, ```question_comment_search_update()``` e ```answer_comment_search_update()```, presentes nos últimos índices (IDX12, IDX13 e IDX14) - têm o corpo comum, isto é, são constituídas pelas mesmas instruções, dado que uma coluna de nome *content* está presente nas três relações (*answer*, *question_comment* e *answer_comment*, respetivamente) sobre as quais efetuar *full-text search*. Por este motivo, no *script* SQL de criação da base de dados, só se definirá a função uma vez - com o nome ```content_search_update()``` - e os gatilhos serão adaptados para chamar a função apropriada. Aqui, a função foi apresentada de forma triplicada para simplicidade na leitura/análise de cada bloco de código SQL.
 
 
 ### 3. Gatilhos
