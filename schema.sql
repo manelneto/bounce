@@ -310,12 +310,48 @@ END;
 -- Deixo um exemplo de um trigger que usamos em LTW e pode ser útil por ser parecido (por causa da geração das strings das notificações)
 -- O trigger era para quando um ticket atualizava o seu estado (aberto para fechado, por exemplo) e essa atualização tinha de ficar registada na tabela 'Change' tipo «Status: Open → Closed'
 -- O operador || concatena strings!
--- Bom trabalho :)
 
-DROP TRIGGER IF EXISTS TicketStatus;
-CREATE TRIGGER TicketStatus
-    AFTER UPDATE OF idStatus ON Ticket
-    WHEN New.idStatus <> Old.idStatus OR (New.idStatus IS NOT NULL AND Old.idStatus IS NULL)
+-- DROP TRIGGER IF EXISTS TicketStatus;
+-- CREATE TRIGGER TicketStatus
+    -- AFTER UPDATE OF idStatus ON Ticket
+    -- WHEN New.idStatus <> Old.idStatus OR (New.idStatus IS NOT NULL AND Old.idStatus IS NULL)
+-- BEGIN
+    -- INSERT INTO Change (date, description, idTicket) VALUES (date(), 'Status: ' || IFNULL((SELECT name FROM Status WHERE idStatus = Old.idStatus), 'None') || ' → ' || (SELECT name FROM Status WHERE idStatus = New.idStatus), New.idTicket);
+-- END;
+
+CREATE TRIGGER new_answer_notification AFTER INSERT ON Answer FOR EACH ROW
 BEGIN
-    INSERT INTO Change (date, description, idTicket) VALUES (date(), 'Status: ' || IFNULL((SELECT name FROM Status WHERE idStatus = Old.idStatus), 'None') || ' → ' || (SELECT name FROM Status WHERE idStatus = New.idStatus), New.idTicket);
+   IF NEW.author_id = (SELECT author_id FROM Question WHERE id = NEW.question_id) THEN
+      INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new answer to your question!', CURRENT_DATE, FALSE, NEW.author_id);
+   END IF;
 END;
+
+
+CREATE TRIGGER new_vote_notification AFTER INSERT ON Vote FOR EACH ROW
+BEGIN
+   IF NEW.user_id = (SELECT author_id FROM Question WHERE id = NEW.question_id) THEN
+      INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new vote to your question!', CURRENT_DATE, FALSE, NEW.user_id);
+   END IF;
+END;
+
+
+CREATE TRIGGER new_question_comment_notification AFTER INSERT ON Comment FOR EACH ROW
+BEGIN
+   IF NEW.user_id = (SELECT author_id FROM Question WHERE id = NEW.question_id) THEN
+      INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new comment to your question!', CURRENT_DATE, FALSE, NEW.user_id);
+   END IF;
+END;
+
+CREATE TRIGGER new_answer_comment_notification AFTER INSERT ON Comment FOR EACH ROW
+BEGIN
+   IF NEW.user_id = (SELECT author_id FROM Answer WHERE id = NEW.answer_id) THEN
+      INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new comment to your answer!', CURRENT_DATE, FALSE, NEW.user_id);
+   END IF;
+END;
+
+CREATE TRIGGER NewBadgeNotification AFTER INSERT ON UserBadge FOR EACH ROW
+BEGIN
+   INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new badge: ' || NEW.badge_name, CURRENT_DATE, FALSE, NEW.user_id);
+END;
+
+

@@ -300,7 +300,7 @@ O esquema físico da base de dados inclui - na tabela abaixo - uma análise da c
 Tabela 22 - Carga de Trabalho da Base de Dados
 
 
-### 2. índices Propostos
+### 2. Índices Propostos
 
 #### 2.1. Índices de Desempenho
  
