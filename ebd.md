@@ -316,7 +316,7 @@ Nas três tabelas abaixo propõem-se os índices a implementar de maneira a melh
 | **Justificação** | A tabela *notification* é muito grande (estima-se que tenha muitas entradas) e atualizada frequentemente, pelo que a importância da existência de um índice é acrescida. Como as consultas são feitas, em princípio, para um dado utilizador e a ordenação necessária é apenas por data (dentro do mesmo utilizador), o índice mais relevante é do tipo hash. Não se propõe agrupamento da tabela devido à estimativa elevada para a sua frequência de crescimento. |
 | **Código SQL** | |
 ```sql
-CREATE INDEX user_notification ON notification USING hash (id_user)
+CREATE INDEX user_notification ON notification USING hash (id_user);
 ```
 
 Tabela 22 - Índice para a Relação *notification*

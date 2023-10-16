@@ -1,5 +1,3 @@
-DROP SCHEMA IF EXISTS lbaw23114;
-CREATE SCHEMA lbaw23114;
 SET search_path TO lbaw23114;
 
 
@@ -21,6 +19,23 @@ DROP TABLE IF EXISTS user_earns_badge CASCADE;
 DROP TABLE IF EXISTS badge CASCADE;
 DROP TABLE IF EXISTS notification CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+
+DROP FUNCTION IF EXISTS new_badge_notification CASCADE;
+DROP FUNCTION IF EXISTS new_answer_comment_notification CASCADE;
+DROP FUNCTION IF EXISTS new_question_comment_notification CASCADE;
+DROP FUNCTION IF EXISTS new_vote_notification CASCADE;
+DROP FUNCTION IF EXISTS new_answer_notification CASCADE;
+DROP FUNCTION IF EXISTS check_answer_vote CASCADE;
+DROP FUNCTION IF EXISTS check_question_vote CASCADE;
+DROP FUNCTION IF EXISTS check_file_extension CASCADE;
+DROP FUNCTION IF EXISTS check_expert_status CASCADE;
+DROP FUNCTION IF EXISTS calculate_user_rating CASCADE;
+DROP FUNCTION IF EXISTS update_content_on_user_deletion CASCADE;
+DROP FUNCTION IF EXISTS prevent_self_comment_on_answer CASCADE;
+DROP FUNCTION IF EXISTS prevent_self_comment_on_question CASCADE;
+DROP FUNCTION IF EXISTS prevent_self_answer CASCADE;
+DROP FUNCTION IF EXISTS prevent_self_vote_on_answer CASCADE;
+DROP FUNCTION IF EXISTS prevent_self_vote_on_question CASCADE;
 
 
 CREATE TABLE users ( -- a plural 'users' was adopted because 'user' is a reserved word in PostgreSQL
@@ -167,98 +182,294 @@ CREATE TABLE answer_comment (
 );
 
 
+-- Índices
+
+
+CREATE INDEX user_notification ON notification USING hash (id_user);
+
+
+CREATE INDEX community_question ON question USING btree (id_community);
+CLUSTER question USING community_question;
+
+
+CREATE INDEX question_question_vote ON question_vote USING hash (id_question);
+
+
+-- Adicionar à tabela question uma coluna para armazenar os ts_vectors computados
+ALTER TABLE question
+ADD COLUMN tsvectors TSVECTOR;
+
+-- Criar uma função para atualizar automaticamente os ts_vectors
+CREATE OR REPLACE FUNCTION question_search_update() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.tsvectors = (
+            setweight(to_tsvector('english', NEW.title), 'A') ||
+            setweight(to_tsvector('english', NEW.content), 'B')
+        );
+    END IF;
+    IF TG_OP = 'UPDATE' THEN
+        IF (NEW.title <> OLD.title OR NEW.content <> OLD.content) THEN
+            NEW.tsvectors = (
+                setweight(to_tsvector('english', NEW.title), 'A') ||
+                setweight(to_tsvector('english', NEW.content), 'B')
+            );
+        END IF;
+    END IF;
+    RETURN NEW;
+END $$
+LANGUAGE plpgsql;
+
+-- Criar um gatilho para executar antes de inserções e atualizações na tabela question
+CREATE TRIGGER question_search_update
+    BEFORE INSERT OR UPDATE ON question
+    FOR EACH ROW
+    EXECUTE PROCEDURE question_search_update();
+
+-- Criar um índice GIN para os ts_vectors
+CREATE INDEX question_search_idx ON question USING GIN (tsvectors);
+
+
+-- Adicionar à tabela answer uma coluna para armazenar os ts_vectors computados
+ALTER TABLE answer
+ADD COLUMN tsvectors TSVECTOR;
+
+-- Criar uma função para atualizar automaticamente os ts_vectors
+CREATE OR REPLACE FUNCTION answer_search_update() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.tsvectors = to_tsvector('english', NEW.content);
+    END IF;
+    IF TG_OP = 'UPDATE' THEN
+        IF NEW.content <> OLD.content THEN
+            NEW.tsvectors = to_tsvector('english', NEW.content);
+        END IF;
+    END IF;
+    RETURN NEW;
+END $$
+LANGUAGE plpgsql;
+
+-- Criar um gatilho para executar antes de inserções e atualizações na tabela question
+CREATE TRIGGER answer_search_update
+    BEFORE INSERT OR UPDATE ON answer
+    FOR EACH ROW
+    EXECUTE PROCEDURE answer_search_update();
+
+-- Criar um índice GIN para os ts_vectors
+CREATE INDEX answer_search_idx ON answer USING GIN (tsvectors);
+
+
+-- Adicionar à tabela question_comment uma coluna para armazenar os ts_vectors computados
+ALTER TABLE question_comment
+ADD COLUMN tsvectors TSVECTOR;
+
+-- Criar uma função para atualizar automaticamente os ts_vectors
+CREATE OR REPLACE FUNCTION question_comment_search_update() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.tsvectors = to_tsvector('english', NEW.content);
+    END IF;
+    IF TG_OP = 'UPDATE' THEN
+        IF NEW.content <> OLD.content THEN
+            NEW.tsvectors = to_tsvector('english', NEW.content);
+        END IF;
+    END IF;
+    RETURN NEW;
+END $$
+LANGUAGE plpgsql;
+
+-- Criar um gatilho para executar antes de inserções e atualizações na tabela question
+CREATE TRIGGER question_comment_search_update
+    BEFORE INSERT OR UPDATE ON question_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE question_comment_search_update();
+
+-- Criar um índice GIN para os ts_vectors
+CREATE INDEX question_comment_search_idx ON question_comment USING GIN (tsvectors);
+
+
+-- Adicionar à tabela answer_comment uma coluna para armazenar os ts_vectors computados
+ALTER TABLE answer_comment
+ADD COLUMN tsvectors TSVECTOR;
+
+-- Criar uma função para atualizar automaticamente os ts_vectors
+CREATE OR REPLACE FUNCTION answer_comment_search_update() RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.tsvectors = to_tsvector('english', NEW.content);
+    END IF;
+    IF TG_OP = 'UPDATE' THEN
+        IF NEW.content <> OLD.content THEN
+            NEW.tsvectors = to_tsvector('english', NEW.content);
+        END IF;
+    END IF;
+    RETURN NEW;
+END $$
+LANGUAGE plpgsql;
+
+-- Criar um gatilho para executar antes de inserções e atualizações na tabela question
+CREATE TRIGGER answer_comment_search_update
+    BEFORE INSERT OR UPDATE ON answer_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE answer_comment_search_update();
+
+-- Criar um índice GIN para os ts_vectors
+CREATE INDEX answer_comment_search_idx ON answer_comment USING GIN (tsvectors);
+
+
 -- Triggers
 
+
 -- BR01
-CREATE TRIGGER prevent_self_vote_on_question
-BEFORE INSERT ON question_vote
-FOR EACH ROW
+CREATE FUNCTION prevent_self_vote_on_question() RETURNS TRIGGER AS
+$BODY$
 BEGIN
-  IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot vote on your own question';
-  END IF;
-END;
+    IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
+        RAISE EXCEPTION 'Cannot vote on your own question';
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_self_vote_on_question
+    BEFORE INSERT OR UPDATE ON question_vote
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_self_vote_on_question();
+
+
+CREATE FUNCTION prevent_self_vote_on_answer() RETURNS TRIGGER AS
+$BODY$
+BEGIN
+    IF NEW.id_user = (SELECT id_user FROM answer WHERE id = NEW.id_answer) THEN
+        RAISE EXCEPTION 'Cannot vote on your own answer';
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER prevent_self_vote_on_answer
-BEFORE INSERT ON answer_vote
-FOR EACH ROW
-BEGIN
-  IF NEW.id_user = (SELECT id_user FROM answer WHERE id = NEW.id_answer) THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot vote on your own answer';
-  END IF;
-END;
+    BEFORE INSERT OR UPDATE ON answer_vote
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_self_vote_on_answer();
+
 
 --BR02
-CREATE TRIGGER prevent_self_answer
-BEFORE INSERT ON answer
-FOR EACH ROW
+CREATE FUNCTION prevent_self_answer() RETURNS TRIGGER AS
+$BODY$
 BEGIN
-  IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot answer your own question';
-  END IF;
-END;
+    IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
+        RAISE EXCEPTION 'Cannot answer your own question';
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_self_answer
+    BEFORE INSERT ON answer
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_self_answer();
+
 
 -- BR03
-CREATE TRIGGER prevent_self_comment_on_question
-BEFORE INSERT ON question_comment
-FOR EACH ROW
+CREATE FUNCTION prevent_self_comment_on_question() RETURNS TRIGGER AS
+$BODY$
 BEGIN
-  IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot comment on your own question';
-  END IF;
-END;
+    IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
+        RAISE EXCEPTION 'Cannot comment on your own question';
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_self_comment_on_question
+    BEFORE INSERT ON question_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_self_comment_on_question();
+
+
+CREATE FUNCTION prevent_self_comment_on_answer() RETURNS TRIGGER AS
+$BODY$
+BEGIN
+    IF NEW.id_user = (SELECT id_user FROM answer WHERE id = NEW.id_answer) THEN
+        RAISE EXCEPTION 'Cannot comment on your own answer';
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
 
 CREATE TRIGGER prevent_self_comment_on_answer
-BEFORE INSERT ON answer_comment
-FOR EACH ROW
-BEGIN
-  IF NEW.id_user = (SELECT id_user FROM answer WHERE id = NEW.id_answer) THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot comment on your own answer';
-  END IF;
-END;
+    BEFORE INSERT ON answer_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE prevent_self_comment_on_answer();
+
 
 -- BR04
-CREATE TRIGGER update_content_on_user_delete
-BEFORE DELETE ON user
-FOR EACH ROW
+CREATE FUNCTION update_content_on_user_deletion() RETURNS TRIGGER AS
+$BODY$
 BEGIN
-  DECLARE anonymous_user_id INT;
-  SET anonymous_user_id = (SELECT id FROM user WHERE username = CONCAT('anonymous', OLD.id));
+    UPDATE users SET username = CONCAT('anonymous', OLD.id), email = CONCAT('anonymous', OLD.id) WHERE id = OLD.id;
+    RETURN NULL;
+END
+$BODY$
+LANGUAGE plpgsql;
 
-  UPDATE question SET id_user = anonymous_user_id WHERE id_user = OLD.id;
-  UPDATE answer SET id_user = anonymous_user_id WHERE id_user = OLD.id;
-  UPDATE question_comment SET id_user = anonymous_user_id WHERE id_user = OLD.id;
-  UPDATE answer_comment SET id_user = anonymous_user_id WHERE id_user = OLD.id;
-END;
+CREATE TRIGGER update_content_on_user_deletion
+    BEFORE DELETE ON users
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_content_on_user_deletion();
+
 
 -- BR05
-CREATE PROCEDURE calculate_user_rating(IN user_id INT, IN community_id INT)
+CREATE FUNCTION calculate_user_rating() RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    total_likes INTEGER;
+    total_dislikes INTEGER;
+    id_author INTEGER;
+    id_c INTEGER;
 BEGIN
-  DECLARE total_likes INT;
-  DECLARE total_dislikes INT;
-  DECLARE rating INT;
+    SELECT id_user INTO id_author
+    FROM answer
+    WHERE answer.id = NEW.id_answer;
 
-  SELECT COUNT(*) INTO total_likes FROM answer_vote
-  JOIN answer ON answer_vote.id_answer = answer.id
-  WHERE answer.id_user = user_id AND answer.id_community = community_id AND answer_vote.like = TRUE;
+    SELECT id_community INTO id_c
+    FROM answer
+    WHERE answer.id = NEW.id_answer;
 
-  SELECT COUNT(*) INTO total_dislikes FROM answer_vote
-  JOIN answer ON answer_vote.id_answer = answer.id
-  WHERE answer.id_user = user_id AND answer.id_community = community_id AND answer_vote.like = FALSE;
+    SELECT COUNT(*) INTO total_likes
+    FROM answer_vote JOIN answer ON answer_vote.id_answer = answer.id
+    WHERE answer.id_user = id_author AND answer.id_community = id_c AND answer_vote.like = TRUE;
 
-  SET rating = 1000 * total_likes / (total_likes + total_dislikes);
+    SELECT COUNT(*) INTO total_dislikes
+    FROM answer_vote JOIN answer ON answer_vote.id_answer = answer.id
+    WHERE answer.id_user = id_author AND answer.id_community = id_c AND answer_vote.like = FALSE;
 
-  UPDATE reputation SET rating = rating WHERE id_user = user_id AND id_community = community_id;
-END;
+    UPDATE reputation
+    SET rating = 1000 * total_likes / (total_likes + total_dislikes)
+    WHERE id_user = id_author AND id_community = id_c;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER calculate_user_rating
+    AFTER INSERT OR UPDATE ON answer_vote
+    FOR EACH ROW
+    EXECUTE PROCEDURE calculate_user_rating();
+
 
 -- BR06
-CREATE TRIGGER check_expert_status
-AFTER INSERT, UPDATE ON reputation
-FOR EACH ROW
+CREATE FUNCTION check_expert_status() RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    total_badges INTEGER;
+    user_badges INTEGER;
 BEGIN
-    DECLARE total_badges INT;
-    DECLARE user_badges INT;
-
     SELECT COUNT(*) INTO total_badges FROM badge;
     SELECT COUNT(*) INTO user_badges FROM user_earns_badge WHERE id_user = NEW.id_user;
 
@@ -267,12 +478,20 @@ BEGIN
     ELSE
         UPDATE reputation SET expert = FALSE WHERE id_user = NEW.id_user AND id_community = NEW.id_community;
     END IF;
-END;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER check_expert_status
+    AFTER INSERT OR UPDATE ON reputation
+    FOR EACH ROW
+    EXECUTE PROCEDURE check_expert_status();
+
 
 -- BR07
-CREATE TRIGGER check_file_extension_before_insert_or_update_on_answer
-BEFORE INSERT, UPDATE ON answer
-FOR EACH ROW
+CREATE FUNCTION check_file_extension() RETURNS TRIGGER AS
+$BODY$
 BEGIN
     IF NEW.file NOT LIKE 'jpg' AND 
        NEW.file NOT LIKE 'jpeg' AND 
@@ -280,78 +499,179 @@ BEGIN
        NEW.file NOT LIKE 'txt' AND 
        NEW.file NOT LIKE 'pdf' AND 
        NEW.file NOT LIKE 'doc' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid file extension. Only jpg, jpeg, png, txt, pdf, doc are allowed.';
+       RAISE EXCEPTION 'Invalid file extension. Only jpg, jpeg, png, txt, pdf, doc are allowed.';
     END IF;
-END;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER check_file_extension_on_question
+    BEFORE INSERT OR UPDATE ON question
+    FOR EACH ROW
+    EXECUTE PROCEDURE check_file_extension();
+
+CREATE TRIGGER check_file_extension_on_answer
+    BEFORE INSERT OR UPDATE ON answer
+    FOR EACH ROW
+    EXECUTE PROCEDURE check_file_extension();
+
 
 -- BR08
-CREATE TRIGGER check_vote_before_insert_on_question_vote
-BEFORE INSERT ON question_vote
-FOR EACH ROW
+CREATE FUNCTION check_question_vote() RETURNS TRIGGER AS
+$BODY$
 BEGIN
-    IF EXISTS (SELECT 1 FROM question_vote WHERE id_question = NEW.id_question AND id_user = NEW.id_user) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Each user can only vote once on each post.';
+    IF EXISTS (SELECT id_user FROM question_vote WHERE id_question = NEW.id_question AND id_user = NEW.id_user) THEN
+        RAISE EXCEPTION 'Each user can only vote once on each question.';
     END IF;
-END;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
 
-CREATE TRIGGER check_vote_before_insert_on_answer_vote
-BEFORE INSERT ON answer_vote
-FOR EACH ROW
+CREATE TRIGGER check_question_vote
+    BEFORE INSERT OR UPDATE ON question_vote
+    FOR EACH ROW
+    EXECUTE PROCEDURE check_question_vote();
+
+CREATE FUNCTION check_answer_vote() RETURNS TRIGGER AS
+$BODY$
 BEGIN
-    IF EXISTS (SELECT 1 FROM answer_vote WHERE id_answer = NEW.id_answer AND id_user = NEW.id_user) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Each user can only vote once on each post.';
+    IF EXISTS (SELECT id_user FROM answer_vote WHERE id_question = NEW.id_question AND id_user = NEW.id_user) THEN
+        RAISE EXCEPTION 'Each user can only vote once on each answer.';
     END IF;
-END;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER check_answer_vote
+    BEFORE INSERT ON answer_vote
+    FOR EACH ROW
+    EXECUTE PROCEDURE check_answer_vote();
 
 
--- Matilde quando leres isto não te esqueças dos novos triggers para as notificações
--- Um utilizador deve receber notificações de: respostas às próprias perguntas, votos nas próprias perguntas, comentários nas próprias perguntas/respostas e emblemas
--- (e pelas user stories é só, afinal não precisa de notificações das coisas que segue)
--- Deixo um exemplo de um trigger que usamos em LTW e pode ser útil por ser parecido (por causa da geração das strings das notificações)
--- O trigger era para quando um ticket atualizava o seu estado (aberto para fechado, por exemplo) e essa atualização tinha de ficar registada na tabela 'Change' tipo «Status: Open → Closed'
--- O operador || concatena strings!
+-- Notificações
 
--- DROP TRIGGER IF EXISTS TicketStatus;
--- CREATE TRIGGER TicketStatus
-    -- AFTER UPDATE OF idStatus ON Ticket
-    -- WHEN New.idStatus <> Old.idStatus OR (New.idStatus IS NOT NULL AND Old.idStatus IS NULL)
--- BEGIN
-    -- INSERT INTO Change (date, description, idTicket) VALUES (date(), 'Status: ' || IFNULL((SELECT name FROM Status WHERE idStatus = Old.idStatus), 'None') || ' → ' || (SELECT name FROM Status WHERE idStatus = New.idStatus), New.idTicket);
--- END;
 
-CREATE TRIGGER new_answer_notification AFTER INSERT ON Answer FOR EACH ROW
+CREATE FUNCTION new_answer_notification() RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    author INTEGER;
+    q_title VARCHAR(255);
 BEGIN
-   IF NEW.author_id = (SELECT author_id FROM Question WHERE id = NEW.question_id) THEN
-      INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new answer to your question!', CURRENT_DATE, FALSE, NEW.author_id);
-   END IF;
-END;
+    SELECT id_user, title INTO author, q_title
+    FROM question
+    WHERE id = NEW.id_question;
+
+    INSERT INTO notification (content, date, read, id_user)
+    VALUES (CONCAT('You received a new answer to your question: ', q_title, '!'), CURRENT_DATE, FALSE, author);
+    
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER new_answer_notification
+    AFTER INSERT ON answer
+    FOR EACH ROW
+    EXECUTE PROCEDURE new_answer_notification();
 
 
-CREATE TRIGGER new_vote_notification AFTER INSERT ON Vote FOR EACH ROW
+CREATE FUNCTION new_vote_notification() RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    author INTEGER;
+    q_title VARCHAR(255);
 BEGIN
-   IF NEW.user_id = (SELECT author_id FROM Question WHERE id = NEW.question_id) THEN
-      INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new vote to your question!', CURRENT_DATE, FALSE, NEW.user_id);
-   END IF;
-END;
+    SELECT id_user, title INTO author, q_title
+    FROM question
+    WHERE id = NEW.id_question;
+
+    INSERT INTO notification (content, date, read, id_user)
+    VALUES (CONCAT('You received a new vote on your question: ', q_title, '!'), CURRENT_DATE, FALSE, author);
+
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER new_vote_notification
+    AFTER INSERT ON question_vote
+    FOR EACH ROW
+    EXECUTE PROCEDURE new_vote_notification();
 
 
-CREATE TRIGGER new_question_comment_notification AFTER INSERT ON Comment FOR EACH ROW
+CREATE FUNCTION new_question_comment_notification() RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    author INTEGER;
+    q_title VARCHAR(255);
 BEGIN
-   IF NEW.user_id = (SELECT author_id FROM Question WHERE id = NEW.question_id) THEN
-      INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new comment to your question!', CURRENT_DATE, FALSE, NEW.user_id);
-   END IF;
-END;
+    SELECT id_user, title INTO author, q_title
+    FROM question
+    WHERE id = NEW.id_question;
 
-CREATE TRIGGER new_answer_comment_notification AFTER INSERT ON Comment FOR EACH ROW
+    INSERT INTO notification (content, date, read, id_user)
+    VALUES (CONCAT('You received a new comment on your question: ', q_title, '!'), CURRENT_DATE, FALSE, author);
+
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER new_question_comment_notification
+    AFTER INSERT ON question_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE new_question_comment_notification();
+
+
+CREATE FUNCTION new_answer_comment_notification() RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    author INTEGER;
+    q_title VARCHAR(255);
 BEGIN
-   IF NEW.user_id = (SELECT author_id FROM Answer WHERE id = NEW.answer_id) THEN
-      INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new comment to your answer!', CURRENT_DATE, FALSE, NEW.user_id);
-   END IF;
-END;
+    SELECT id_user, title INTO author, q_title
+    FROM question
+    WHERE id = NEW.id_question;
 
-CREATE TRIGGER NewBadgeNotification AFTER INSERT ON UserBadge FOR EACH ROW
+    INSERT INTO notification (content, date, read, id_user)
+    VALUES (CONCAT('You received a new comment on your answer: ', q_title, '!'), CURRENT_DATE, FALSE, author);
+
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER new_answer_comment_notification
+    AFTER INSERT ON answer_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE new_answer_comment_notification();
+
+
+CREATE FUNCTION new_badge_notification() RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    winner INTEGER;
+    b_name VARCHAR(255);
 BEGIN
-   INSERT INTO Notification(content, date, read, id_user) VALUES ('You received a new badge: ' || NEW.badge_name, CURRENT_DATE, FALSE, NEW.user_id);
-END;
+    SELECT id_user, name INTO winner, b_name
+    FROM badge
+    WHERE id = NEW.id_badge;
+
+    INSERT INTO notification (content, date, read, id_user)
+    VALUES (CONCAT('You received a new badge: ', b_name, '!'), CURRENT_DATE, FALSE, winner);
+
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER new_badge_notification
+    AFTER INSERT ON user_earns_badge
+    FOR EACH ROW
+    EXECUTE PROCEDURE new_badge_notification();
 
 
+-- badges?
