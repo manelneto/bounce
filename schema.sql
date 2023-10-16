@@ -231,7 +231,6 @@ BEGIN
   UPDATE answer_comment SET id_user = anonymous_user_id WHERE id_user = OLD.id;
 END;
 
-
 -- BR05
 CREATE PROCEDURE calculate_user_rating(IN user_id INT, IN community_id INT)
 BEGIN
@@ -271,6 +270,19 @@ BEGIN
 END;
 
 -- BR07
+CREATE TRIGGER check_file_extension_before_insert_or_update_on_answer
+BEFORE INSERT, UPDATE ON answer
+FOR EACH ROW
+BEGIN
+    IF NEW.file NOT LIKE 'jpg' AND 
+       NEW.file NOT LIKE 'jpeg' AND 
+       NEW.file NOT LIKE 'png' AND 
+       NEW.file NOT LIKE 'txt' AND 
+       NEW.file NOT LIKE 'pdf' AND 
+       NEW.file NOT LIKE 'doc' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid file extension. Only jpg, jpeg, png, txt, pdf, doc are allowed.';
+    END IF;
+END;
 
 -- BR08
 CREATE TRIGGER check_vote_before_insert_on_question_vote
