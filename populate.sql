@@ -106,7 +106,7 @@ VALUES
 INSERT INTO question_vote (id_question, id_user, likes) 
 VALUES
     (1, 2, true),
-    (2, 1, true),
+    --(2, 1, true),
     (3, 4, false),
     (4, 3, true);
 
