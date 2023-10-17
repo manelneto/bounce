@@ -107,7 +107,7 @@ CREATE TABLE reputation (
 CREATE TABLE question (
     id SERIAL PRIMARY KEY,
     content TEXT NOT NULL,
-    date DATE NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
     file VARCHAR(255),
     last_edited DATE,
     title TEXT NOT NULL,
