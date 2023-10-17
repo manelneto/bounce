@@ -381,24 +381,29 @@ BEGIN
     WHERE answer.id = NEW.id_answer;
 
     SELECT id_community INTO id_c
-    FROM answer NATURAL JOIN question
+    FROM answer JOIN question ON answer.id_question = question.id
     WHERE answer.id = NEW.id_answer;
 
     SELECT COUNT(*) INTO total_likes
-    FROM question NATURAL JOIN answer JOIN answer_vote ON answer_vote.id_answer = answer.id 
+    FROM question JOIN answer ON question.id = answer.id_question JOIN answer_vote ON answer_vote.id_answer = answer.id 
     WHERE answer.id_user = id_author AND question.id_community = id_c AND answer_vote.likes = TRUE;
 
     SELECT COUNT(*) INTO total_dislikes
-    FROM question NATURAL JOIN answer JOIN answer_vote ON answer_vote.id_answer = answer.id 
+    FROM question JOIN answer ON question.id = answer.id_question JOIN answer_vote ON answer_vote.id_answer = answer.id 
     WHERE answer.id_user = id_author AND question.id_community = id_c AND answer_vote.likes = FALSE;
-
     IF total_likes + total_dislikes = 0 THEN
         RETURN NEW;
     END IF;
 
-    UPDATE reputation
-    SET rating = 1000 * total_likes / (total_likes + total_dislikes)
-    WHERE id_user = id_author AND id_community = id_c;
+    IF EXISTS (SELECT id_user FROM reputation WHERE id_user = id_author) THEN
+        UPDATE reputation
+        SET rating = 1000 * total_likes / (total_likes + total_dislikes)
+        WHERE id_user = id_author AND id_community = id_c;
+    ELSE
+        INSERT INTO reputation (id_user, id_community, rating)
+        VALUES (id_author, id_c, 1000 * total_likes / (total_likes + total_dislikes));
+    END IF;
+
     RETURN NEW;
 END
 $BODY$
@@ -446,7 +451,7 @@ BEGIN
        NEW.file NOT LIKE '%.txt' AND 
        NEW.file NOT LIKE '%.pdf' AND 
        NEW.file NOT LIKE '%.doc' THEN
-       RAISE EXCEPTION 'Invalid file extension. Only jpg, jpeg, png, txt, pdf, doc are allowed.';
+       RAISE EXCEPTION 'Invalid file extension for %. Only jpg, jpeg, png, txt, pdf, doc are allowed.', NEW.file;
     END IF;
     RETURN NEW;
 END
@@ -620,5 +625,20 @@ CREATE TRIGGER new_badge_notification
     EXECUTE PROCEDURE new_badge_notification();
 
 
--- badges?
+CREATE OR REPLACE FUNCTION award_badge_on_first_question() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 1 THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, );
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER first_question_badge_trigger
+    AFTER INSERT ON question
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_question();
+
 
