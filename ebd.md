@@ -23,13 +23,11 @@ As restrições e regras de negócio que não puderam ser incluídas no diagrama
 | Identificador | Descrição |
 | ------------- | --------- |
 | BR01 | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa publicação (*Post*) da qual é autor |
-| BR02 | Nenhum utilizador autenticado (*User*) pode publicar uma resposta (*Answer*) numa pergunta (*Question*) da qual é autor |
-| BR03 | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa publicação (*Post*) da qual é autor |
-| BR04 | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo |
-| BR05 | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade |
-| BR06 | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 |
-| BR07 | Os ficheiros (*file*) das publicações (*Post*) devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* |
-| BR08 | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada publicação (*Post*) uma vez
+| BR02 | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo |
+| BR03 | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade |
+| BR04 | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 |
+| BR05 | Os ficheiros (*file*) das publicações (*Post*) devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* |
+| BR06 | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada publicação (*Post*) uma vez
 
 Tabela 1 - Regras de Negócio Adicionais
 
@@ -546,110 +544,90 @@ Tabela 30 - Gatilho para verificar *votos* numa *pergunta*
 
 Tabela 31 - Gatilho para verificar *votos* numa *resposta*
 
-| **Trigger**      | TRIGGER03                              |
+| **Trigger**      | TRIGGER03                            |
 | ---              | ---                                    |
-| **Descrição**  | Nenhum utilizador autenticado (*User*) pode publicar uma resposta (*Answer*) numa pergunta (*Question*) da qual é autor - **BR02** |
+| **Descrição**  | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo - **BR02** |
 | `SQL code`       |                                        |
 
-Tabela 32 - Gatilho para verificar *respostas* numa *pergunta*
+Tabela 32 - Gatilho para *utilizadores apagados*
 
 | **Trigger**      | TRIGGER04                              |
 | ---              | ---                                    |
-| **Descrição**  | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa pergunta da qual é autor - **BR03** |
+| **Descrição**  | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade - **BR03** |
 | `SQL code`       |                                        |
 
-Tabela 33 - Gatilho para verificar *comentários* numa *pergunta*
+Tabela 33 - Gatilho para calcular *rating*
 
 | **Trigger**      | TRIGGER05                              |
 | ---              | ---                                    |
-| **Descrição**  | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa resposta da qual é autor - **BR03** |
+| **Descrição**  | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 - **BR04** |
 | `SQL code`       |                                        |
 
-Tabela 34 - Gatilho para verificar *comentários* numa *resposta*
+Tabela 34 - Gatilho para verificar *experts*
 
-| **Trigger**      | TRIGGER06                            |
+| **Trigger**      | TRIGGER06                              |
 | ---              | ---                                    |
-| **Descrição**  | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo - **BR04** |
+| **Descrição**  | Os ficheiros (*file*) das perguntas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR05** |
 | `SQL code`       |                                        |
 
-Tabela 35 - Gatilho para *utilizadores apagados*
+Tabela 35 - Gatilho para verificar *extensões de ficheiros* nas *perguntas*
 
 | **Trigger**      | TRIGGER07                              |
 | ---              | ---                                    |
-| **Descrição**  | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade - **BR05** |
+| **Descrição**  | Os ficheiros (*file*) das respostas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR05** |
 | `SQL code`       |                                        |
 
-Tabela 36 - Gatilho para calcular *rating*
+Tabela 36 - Gatilho para verificar *extensões de ficheiros* nas *respostas*
 
 | **Trigger**      | TRIGGER08                              |
 | ---              | ---                                    |
-| **Descrição**  | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 - **BR06** |
+| **Descrição**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada pergunta uma vez - **BR06** |
 | `SQL code`       |                                        |
 
-Tabela 37 - Gatilho para verificar *experts*
+Tabela 37 - Gatilho para verificar *votação única* nas *perguntas*
 
-| **Trigger**      | TRIGGER09                              |
+| **Trigger**      | TRIGGER09                             |
 | ---              | ---                                    |
-| **Descrição**  | Os ficheiros (*file*) das perguntas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR07** |
+| **Descrição**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada resposta uma vez - **BR06** |
 | `SQL code`       |                                        |
 
-Tabela 38 - Gatilho para verificar *extensões de ficheiros* nas *perguntas*
+Tabela 38 - Gatilho para verificar *votação única* nas *respostas*
 
-| **Trigger**      | TRIGGER10                              |
-| ---              | ---                                    |
-| **Descrição**  | Os ficheiros (*file*) das respostas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR07** |
-| `SQL code`       |                                        |
-
-Tabela 39 - Gatilho para verificar *extensões de ficheiros* nas *respostas*
-
-| **Trigger**      | TRIGGER11                              |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada pergunta uma vez - **BR08** |
-| `SQL code`       |                                        |
-
-Tabela 40 - Gatilho para verificar *votação única* nas *perguntas*
-
-| **Trigger**      | TRIGGER12                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada resposta uma vez - **BR08** |
-| `SQL code`       |                                        |
-
-Tabela 41 - Gatilho para verificar *votação única* nas *respostas*
-
-| **Trigger**      | TRIGGER13                             |
+| **Trigger**      | TRIGGER10                             |
 | ---              | ---                                    |
 | **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de respostas às próprias perguntas |
 | `SQL code`       |                                        |
 
-Tabela 42 - Gatilho para verificar *notificação de resposta* nas *próprias perguntas*
+Tabela 39 - Gatilho para verificar *notificação de resposta* nas *próprias perguntas*
 
-| **Trigger**      | TRIGGER14                             |
+| **Trigger**      | TRIGGER11                             |
 | ---              | ---                                    |
 | **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de votos às próprias perguntas |
 | `SQL code`       |                                        |
 
-Tabela 43 - Gatilho para verificar *notificação de votos* nas *próprias perguntas*
+Tabela 40 - Gatilho para verificar *notificação de votos* nas *próprias perguntas*
 
-| **Trigger**      | TRIGGER15                             |
+| **Trigger**      | TRIGGER12                             |
 | ---              | ---                                    |
 | **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias perguntas |
 | `SQL code`       |                                        |
 
-Tabela 44 - Gatilho para verificar *notificação de comentários* nas *próprias perguntas*
+Tabela 41 - Gatilho para verificar *notificação de comentários* nas *próprias perguntas*
 
-| **Trigger**      | TRIGGER16                             |
+| **Trigger**      | TRIGGER13                             |
 | ---              | ---                                    |
 | **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias respostas |
 | `SQL code`       |                                        |
 
-Tabela 45 - Gatilho para verificar *notificação de comentários* nas *próprias respostas*
+Tabela 42 - Gatilho para verificar *notificação de comentários* nas *próprias respostas*
 
-| **Trigger**      | TRIGGER17                             |
+| **Trigger**      | TRIGGER14                             |
 | ---              | ---                                    |
 | **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de atribuição de emblemas |
 | `SQL code`       |                                        |
 
-Tabela 46 - Gatilho para verificar a *atribuição de emblemas*
+Tabela 43 - Gatilho para verificar a *atribuição de emblemas*
+
 
 ### 4. Transações
  
