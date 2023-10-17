@@ -697,7 +697,6 @@ CREATE TRIGGER award_badge_on_first_comment_answer
     EXECUTE PROCEDURE award_badge_on_first_comment_answer();
 
 
-
 CREATE FUNCTION award_badge_on_first_100_question() RETURNS trigger AS 
 $BODY$
 BEGIN
