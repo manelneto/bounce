@@ -1,3 +1,4 @@
+CREATE SCHEMA IF NOT EXISTS lbaw23114;
 SET search_path TO lbaw23114;
 
 
@@ -620,3 +621,4 @@ CREATE TRIGGER new_badge_notification
 
 
 -- badges?
+
