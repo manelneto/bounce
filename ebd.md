@@ -1111,16 +1111,98 @@ CREATE TRIGGER award_badge_on_first_100_answer
 
 Tabela 49 - Gatilho para verificar a atribuição do *emblema das primeiras 100 respostas*
 
+
 ### 4. Transações
  
 As transações desempenham um papel crucial na garantia da integridade e da consistência dos dados, permitindo que múltiplos utilizadores acedam e modifiquem as mesmas informações de forma segura e coordenada.
 
-| **Transação** | TRANXX |
+| **Transação** | TRAN01 |
 | ------------- | ------ |
-| **Descrição** | Associar uma *tag* a uma nova pergunta |
-| **Justificação** | De maneira a manter a consistência dos dados, é necessário usar uma transação para garantir que todo o código executa sem erros. Se ocorrer um erro, faz-se ROLLBACK. O nível de isolamento é *Repeatable Read* porque, caso contrário, uma atualização de *question_id_seq* podia acontecer devido a uma inserção na tabela *question* feita por uma transação concorrente, resultando no armazenamento de dados inconsistentes. |
+| **Descrição** | Obter os comentários, as respostas e os comentários das respostas a uma pergunta |
+| **Justificação** | TODO |
+| **Nível de Isolamento** | SERIALIZABLE READ ONLY |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE READ ONLY;
+
+-- Obter os comentários da pergunta
+SELECT content, date, last_edited, username, image
+FROM question JOIN question_comment ON question.id = question_comment.id_question JOIN users ON question_comment.id_user = users.id
+WHERE question.id = $id_question;
+
+-- Obter as respostas à pergunta
+SELECT content, date, file, last_edited, username, image
+FROM question JOIN answer ON question.id = answer.id_question JOIN users ON answer.id_user = users.id
+WHERE question.id = $id_question;
+
+-- Obter os comentários das respostas à pergunta
+SELECT content, date, last_edited, username
+FROM answer JOIN answer_comment ON answer.id = answer_comment.id_answer JOIN users ON answer_comment.id_user = users.id
+WHERE answer.id = $id_answer;
+
+END TRANSACTION;
+```
+
+Tabela 50 - Transação para obter os comentários, as respostas e os comentários das respostas a uma pergunta
+
+| **Transação** | TRAN02 |
+| ------------- | ------ |
+| **Descrição** | Pesquisar perguntas por *tags* |
+| **Justificação** | TODO |
+| **Nível de Isolamento** | SERIALIZABLE READ ONLY |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE READ ONLY;
+
+-- Obter as tags
+SELECT name
+FROM tag;
+
+-- Pesquisar perguntas por tags
+SELECT title, content, date
+FROM question NATURAL JOIN question_tags
+WHERE id_tag = $id_tag;
+
+END TRANSACTION;
+```
+
+Tabela 51 - Transação para pesquisar perguntas por *tags*
+
+| **Transação** | TRAN03 |
+| ------------- | ------ |
+| **Descrição** | Ver fóruns das comunidades |
+| **Justificação** | TODO |
+| **Nível de Isolamento** | SERIALIZABLE READ ONLY |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE READ ONLY;
+
+-- Obter as comunidades
+SELECT name
+FROM community;
+
+-- Ver o fórum da comunidade
+SELECT title, content, date, username, image
+FROM question JOIN community ON question.id_community = community.id JOIN users ON question.id_user = users.id
+WHERE question.id_community = $id_community;
+
+END TRANSACTION;
+```
+
+Tabela 52 - Transação para ver fóruns das comunidades
+
+| **Transação** | TRAN04 |
+| ------------- | ------ |
+| **Descrição** | Publicar perguntas com *tags* |
+| **Justificação** | TODO |
 | **Nível de Isolamento** | REPEATABLE READ |
-| **Código SQL** |  |
+| **Código SQL** | |
 ```sql
 BEGIN TRANSACTION;
 
@@ -1137,6 +1219,59 @@ VALUES (currval('question_id_seq'), $id_tag);
 END TRANSACTION;
 ```
 
+Tabela 53 - Transação para publicar perguntas com *tags*
+
+| **Transação** | TRAN05 |
+| ------------- | ------ |
+| **Descrição** | Obter o número de notificações por ler e essas notificações |
+| **Justificação** | TODO |
+| **Nível de Isolamento** | SERIALIZABLE READ ONLY |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE READ ONLY;
+
+-- Obter o número de notificações por ler
+SELECT COUNT(*)
+FROM notification
+WHERE id_user = $id_user AND read = FALSE;
+
+-- Obter as notificações por ler
+SELECT content, date
+FROM notification
+WHERE id_user = $id_user AND read = FALSE;
+
+END TRANSACTION;
+```
+
+Tabela 54 - Transação para obter o número de notificações por ler e essas notificações
+
+| **Transação** | TRAN06 |
+| ------------- | ------ |
+| **Descrição** | Obter o número de notificações por ler e essas notificações |
+| **Justificação** | TODO |
+| **Nível de Isolamento** | SERIALIZABLE READ ONLY |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE READ ONLY;
+
+-- Obter o número de notificações por ler
+SELECT COUNT(*)
+FROM notification
+WHERE id_user = $id_user AND read = FALSE;
+
+-- Obter as notificações por ler
+SELECT content, date
+FROM notification
+WHERE id_user = $id_user AND read = FALSE;
+
+END TRANSACTION;
+```
+
+Tabela 54 - Transação para obter o número de notificações por ler e essas notificações
 
 ## Anexo A. Código SQL
 
