@@ -181,7 +181,6 @@ CREATE TABLE answer_comment (
 
 -- Índices
 
-
 CREATE INDEX user_notification ON notification USING hash (id_user);
 
 
@@ -351,61 +350,7 @@ CREATE TRIGGER prevent_self_vote_on_answer
     FOR EACH ROW
     EXECUTE PROCEDURE prevent_self_vote_on_answer();
 
-/*
---BR02
-CREATE FUNCTION prevent_self_answer() RETURNS TRIGGER AS
-$BODY$
-BEGIN
-    IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
-        RAISE EXCEPTION 'Cannot answer your own question';
-    END IF;
-    RETURN NEW;
-END
-$BODY$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER prevent_self_answer
-    BEFORE INSERT ON answer
-    FOR EACH ROW
-    EXECUTE PROCEDURE prevent_self_answer();
-*/
-/*
--- BR03
-CREATE FUNCTION prevent_self_comment_on_question() RETURNS TRIGGER AS
-$BODY$
-BEGIN
-    IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
-        RAISE EXCEPTION 'Cannot comment on your own question';
-    END IF;
-    RETURN NEW;
-END
-$BODY$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER prevent_self_comment_on_question
-    BEFORE INSERT ON question_comment
-    FOR EACH ROW
-    EXECUTE PROCEDURE prevent_self_comment_on_question();
-
-
-CREATE FUNCTION prevent_self_comment_on_answer() RETURNS TRIGGER AS
-$BODY$
-BEGIN
-    IF NEW.id_user = (SELECT id_user FROM answer WHERE id = NEW.id_answer) THEN
-        RAISE EXCEPTION 'Cannot comment on your own answer';
-    END IF;
-    RETURN NEW;
-END
-$BODY$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER prevent_self_comment_on_answer
-    BEFORE INSERT ON answer_comment
-    FOR EACH ROW
-    EXECUTE PROCEDURE prevent_self_comment_on_answer();
-*/
-
--- BR04
+-- BR02
 CREATE FUNCTION update_content_on_user_deletion() RETURNS TRIGGER AS
 $BODY$
 BEGIN
@@ -421,7 +366,7 @@ CREATE TRIGGER update_content_on_user_deletion
     EXECUTE PROCEDURE update_content_on_user_deletion();
 
 
--- BR05
+-- BR03
 CREATE FUNCTION calculate_user_rating() RETURNS TRIGGER AS
 $BODY$
 DECLARE
@@ -464,7 +409,7 @@ CREATE TRIGGER calculate_user_rating
     EXECUTE PROCEDURE calculate_user_rating();
 
 
--- BR06
+-- BR04
 CREATE FUNCTION check_expert_status() RETURNS TRIGGER AS
 $BODY$
 DECLARE
@@ -476,10 +421,8 @@ BEGIN
 
     IF total_badges = user_badges AND NEW.rating > 800 THEN
         SET NEW.expert = TRUE;
-        -- UPDATE reputation SET expert = TRUE WHERE id_user = NEW.id_user AND id_community = NEW.id_community;
     ELSE
         SET NEW.expert = FALSE;
-        -- UPDATE reputation SET expert = FALSE WHERE id_user = NEW.id_user AND id_community = NEW.id_community;
     END IF;
     RETURN NEW;
 END
@@ -492,7 +435,7 @@ CREATE TRIGGER check_expert_status
     EXECUTE PROCEDURE check_expert_status();
 
 
--- BR07
+-- BR05
 CREATE FUNCTION check_file_extension() RETURNS TRIGGER AS
 $BODY$
 BEGIN
@@ -520,7 +463,7 @@ CREATE TRIGGER check_file_extension_on_answer
     EXECUTE PROCEDURE check_file_extension();
 
 
--- BR08
+-- BR06
 CREATE FUNCTION check_question_vote() RETURNS TRIGGER AS
 $BODY$
 BEGIN
@@ -555,7 +498,6 @@ CREATE TRIGGER check_answer_vote
 
 
 -- Notificações
-
 
 CREATE FUNCTION new_answer_notification() RETURNS TRIGGER AS
 $BODY$
