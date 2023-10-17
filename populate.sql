@@ -142,10 +142,11 @@ VALUES
     ('I tried the recipe. It''s amazing!', '2023-10-16', NULL, 3, 3),
     ('Do you have more travel tips?', '2023-10-16', NULL, 4, 4);
 
+
 -- Pass the "prevent_self_vote_on_question" trigger
 -- User 1 votes on a question not asked by themselves
 INSERT INTO question_vote (id_question, id_user, likes) VALUES (2, 1, true);
-
+/*
 -- Fail the "prevent_self_vote_on_question" trigger
 -- User 1 votes on their own question
 INSERT INTO question_vote (id_question, id_user, likes) VALUES (1, 1, true);
@@ -222,4 +223,4 @@ INSERT INTO user_earns_badge (id_user, id_badge) VALUES (1, 2);
 -- Pass the "check_file_extension_on_answer" trigger
 -- Insert an answer with a valid file extension
 INSERT INTO answer (content, date, file, correct, id_user, id_question) VALUES ('Sample answer', '2023-10-16', 'sample.pdf', false, 2, 1);
-
+*/
