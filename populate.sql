@@ -109,7 +109,6 @@ VALUES
     (2, 1, true),
     (3, 4, false),
     (4, 3, true);
-    (1,1,true); 
 
 -- Sample data for the 'question_comment' table
 INSERT INTO question_comment (content, date, last_edited, id_user, id_question)
