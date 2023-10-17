@@ -534,122 +534,122 @@ Os triggers desempenham um papel crucial na automatização de processos e na ma
 
 | **Trigger**      | TRIGGER01                              |
 | ---              | ---                                    |
-| **Description**  | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa pergunta da qual é autor - **BR01** |
+| **Descrição**  | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa pergunta da qual é autor - **BR01** |
 | `SQL code`       |                                        |
 
-Tabela 30 - Trigger para verificar *votos* numa *pergunta*
+Tabela 30 - Gatilho para verificar *votos* numa *pergunta*
 
 | **Trigger**      | TRIGGER02                              |
 | ---              | ---                                    |
-| **Description**  | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa resposta da qual é autor - **BR01** |
+| **Descrição**  | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa resposta da qual é autor - **BR01** |
 | `SQL code`       |                                        |
 
-Tabela 31 - Trigger para verificar *votos* numa *resposta*
+Tabela 31 - Gatilho para verificar *votos* numa *resposta*
 
 | **Trigger**      | TRIGGER03                              |
 | ---              | ---                                    |
-| **Description**  | Nenhum utilizador autenticado (*User*) pode publicar uma resposta (*Answer*) numa pergunta (*Question*) da qual é autor - **BR02** |
+| **Descrição**  | Nenhum utilizador autenticado (*User*) pode publicar uma resposta (*Answer*) numa pergunta (*Question*) da qual é autor - **BR02** |
 | `SQL code`       |                                        |
 
-Tabela 32 - Trigger para verificar *respostas* numa *pergunta*
+Tabela 32 - Gatilho para verificar *respostas* numa *pergunta*
 
 | **Trigger**      | TRIGGER04                              |
 | ---              | ---                                    |
-| **Description**  | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa pergunta da qual é autor - **BR03** |
+| **Descrição**  | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa pergunta da qual é autor - **BR03** |
 | `SQL code`       |                                        |
 
-Tabela 33 - Trigger para verificar *comentários* numa *pergunta*
+Tabela 33 - Gatilho para verificar *comentários* numa *pergunta*
 
 | **Trigger**      | TRIGGER05                              |
 | ---              | ---                                    |
-| **Description**  | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa resposta da qual é autor - **BR03** |
+| **Descrição**  | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa resposta da qual é autor - **BR03** |
 | `SQL code`       |                                        |
 
-Tabela 34 - Trigger para verificar *comentários* numa *resposta*
+Tabela 34 - Gatilho para verificar *comentários* numa *resposta*
 
 | **Trigger**      | TRIGGER06                            |
 | ---              | ---                                    |
-| **Description**  | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo - **BR04** |
+| **Descrição**  | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo - **BR04** |
 | `SQL code`       |                                        |
 
-Tabela 35 - Trigger para *utilizadores apagados*
+Tabela 35 - Gatilho para *utilizadores apagados*
 
 | **Trigger**      | TRIGGER07                              |
 | ---              | ---                                    |
-| **Description**  | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade - **BR05** |
+| **Descrição**  | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade - **BR05** |
 | `SQL code`       |                                        |
 
-Tabela 36 - Trigger para calcular *rating*
+Tabela 36 - Gatilho para calcular *rating*
 
 | **Trigger**      | TRIGGER08                              |
 | ---              | ---                                    |
-| **Description**  | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 - **BR06** |
+| **Descrição**  | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 - **BR06** |
 | `SQL code`       |                                        |
 
-Tabela 37 - Trigger para verificar *experts*
+Tabela 37 - Gatilho para verificar *experts*
 
 | **Trigger**      | TRIGGER09                              |
 | ---              | ---                                    |
-| **Description**  | Os ficheiros (*file*) das perguntas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR07** |
+| **Descrição**  | Os ficheiros (*file*) das perguntas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR07** |
 | `SQL code`       |                                        |
 
-Tabela 38 - Trigger para verificar *extensões de ficheiros* nas *perguntas*
+Tabela 38 - Gatilho para verificar *extensões de ficheiros* nas *perguntas*
 
 | **Trigger**      | TRIGGER10                              |
 | ---              | ---                                    |
-| **Description**  | Os ficheiros (*file*) das respostas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR07** |
+| **Descrição**  | Os ficheiros (*file*) das respostas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR07** |
 | `SQL code`       |                                        |
 
-Tabela 39 - Trigger para verificar *extensões de ficheiros* nas *respostas*
+Tabela 39 - Gatilho para verificar *extensões de ficheiros* nas *respostas*
 
-| **Trigger**      | TRIGGER011                              |
+| **Trigger**      | TRIGGER11                              |
 | ---              | ---                                    |
-| **Description**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada pergunta uma vez - **BR08** |
+| **Descrição**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada pergunta uma vez - **BR08** |
 | `SQL code`       |                                        |
 
-Tabela 40 - Trigger para verificar *votação única* nas *perguntas*
+Tabela 40 - Gatilho para verificar *votação única* nas *perguntas*
 
-| **Trigger**      | TRIGGER012                             |
+| **Trigger**      | TRIGGER12                             |
 | ---              | ---                                    |
-| **Description**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada resposta uma vez - **BR08** |
+| **Descrição**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada resposta uma vez - **BR08** |
 | `SQL code`       |                                        |
 
-Tabela 41 - Trigger para verificar *votação única* nas *respostas*
+Tabela 41 - Gatilho para verificar *votação única* nas *respostas*
 
-| **Trigger**      | TRIGGER013                             |
+| **Trigger**      | TRIGGER13                             |
 | ---              | ---                                    |
-| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de respostas às próprias perguntas |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de respostas às próprias perguntas |
 | `SQL code`       |                                        |
 
-Tabela 42 - Trigger para verificar *notificação de resposta* nas *próprias perguntas*
+Tabela 42 - Gatilho para verificar *notificação de resposta* nas *próprias perguntas*
 
-| **Trigger**      | TRIGGER014                             |
+| **Trigger**      | TRIGGER14                             |
 | ---              | ---                                    |
-| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de votos às próprias perguntas |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de votos às próprias perguntas |
 | `SQL code`       |                                        |
 
-Tabela 43 - Trigger para verificar *notificação de votos* nas *próprias perguntas*
+Tabela 43 - Gatilho para verificar *notificação de votos* nas *próprias perguntas*
 
-| **Trigger**      | TRIGGER015                             |
+| **Trigger**      | TRIGGER15                             |
 | ---              | ---                                    |
-| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias perguntas |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias perguntas |
 | `SQL code`       |                                        |
 
-Tabela 44 - Trigger para verificar *notificação de comentários* nas *próprias perguntas*
+Tabela 44 - Gatilho para verificar *notificação de comentários* nas *próprias perguntas*
 
-| **Trigger**      | TRIGGER016                             |
+| **Trigger**      | TRIGGER16                             |
 | ---              | ---                                    |
-| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias respostas |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias respostas |
 | `SQL code`       |                                        |
 
-Tabela 45 - Trigger para verificar *notificação de comentários* nas *próprias respostas*
+Tabela 45 - Gatilho para verificar *notificação de comentários* nas *próprias respostas*
 
-| **Trigger**      | TRIGGER017                             |
+| **Trigger**      | TRIGGER17                             |
 | ---              | ---                                    |
-| **Description**  | Cada utilizador autenticado (*User*) deve receber notificações de atribuição de emblemas |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de atribuição de emblemas |
 | `SQL code`       |                                        |
 
-Tabela 46 - Trigger para verificar a *atribuição de emblemas*
+Tabela 46 - Gatilho para verificar a *atribuição de emblemas*
 
 ### 4. Transações
  
