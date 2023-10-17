@@ -633,11 +633,27 @@ Tabela 43 - Gatilho para verificar a *atribuição de emblemas*
  
 As transações desempenham um papel crucial na garantia da integridade e da consistência dos dados, permitindo que múltiplos utilizadores acedam e modifiquem as mesmas informações de forma segura e coordenada.
 
-| SQL Reference   | Transaction Name                    |
-| --------------- | ----------------------------------- |
-| Justification   | Justification for the transaction.  |
-| Isolation level | Isolation level of the transaction. |
-| `Complete SQL Code`                                   ||
+| **Transação** | TRANXX |
+| ------------- | ------ |
+| **Descrição** | Associar uma *tag* a uma nova pergunta |
+| **Justificação** | De maneira a manter a consistência dos dados, é necessário usar uma transação para garantir que todo o código executa sem erros. Se ocorrer um erro, faz-se ROLLBACK. O nível de isolamento é *Repeatable Read* porque, caso contrário, uma atualização de *question_id_seq* podia acontecer devido a uma inserção na tabela *question* feita por uma transação concorrente, resultando no armazenamento de dados inconsistentes. |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** |  |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
+
+-- Inserir uma pergunta
+INSERT INTO question (content, date, file, last_edited, title, id_user, id_community)
+VALUES ($content, $date, $file, $last_edited, $title, $id_user, $id_community);
+
+-- Associar uma tag à pergunta
+INSERT INTO question_tags (id_question, id_tag)
+VALUES (currval('question_id_seq'), $id_tag);
+
+END TRANSACTION;
+```
 
 
 ## Anexo A. Código SQL
