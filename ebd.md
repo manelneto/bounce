@@ -961,6 +961,155 @@ CREATE TRIGGER new_badge_notification
 
 Tabela 43 - Gatilho para verificar a *atribuição de emblemas*
 
+| **Trigger**      | TRIGGER15                             |
+| ---              | ---                                    |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema da primeira pergunta realizada |
+| `SQL code`       |                                        |
+
+```sql
+CREATE FUNCTION award_badge_on_first_question() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF EXISTS (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 1);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_question
+    AFTER INSERT ON question
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_question();
+```
+
+Tabela 44 - Gatilho para verificar a atribuição do *emblema da primeira pergunta*
+
+| **Trigger**      | TRIGGER16                             |
+| ---              | ---                                    |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema da primeira resposta realizada |
+| `SQL code`       |                                        |
+
+```sql
+CREATE FUNCTION award_badge_on_first_answer() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF EXISTS (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 2);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_answer
+    AFTER INSERT ON answer
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_answer();
+```
+
+Tabela 45 - Gatilho para verificar a atribuição do *emblema da primeira resposta*
+
+| **Trigger**      | TRIGGER17                             |
+| ---              | ---                                    |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema do primeiro comentário numa pergunta realizado |
+| `SQL code`       |                                        |
+
+```sql
+CREATE FUNCTION award_badge_on_first_comment_question() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF EXISTS (SELECT COUNT(*) FROM question_comment WHERE id_user = NEW.id_user) THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 3);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_comment_question
+    AFTER INSERT ON question_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_comment_question();
+```
+
+Tabela 46 - Gatilho para verificar a atribuição do *emblema do primeiro comentário numa pergunta*
+
+| **Trigger**      | TRIGGER18                             |
+| ---              | ---                                    |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema do primeiro comentário numa resposta realizado |
+| `SQL code`       |                                        |
+
+```sql
+CREATE FUNCTION award_badge_on_first_comment_answer() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF EXISTS (SELECT COUNT(*) FROM answer_comment WHERE id_user = NEW.id_user) THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 4);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_comment_answer
+    AFTER INSERT ON answer_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_comment_answer();
+```
+
+Tabela 47 - Gatilho para verificar a atribuição do *emblema do primeiro comentário numa resposta*
+
+| **Trigger**      | TRIGGER19                             |
+| ---              | ---                                    |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema das primeira 100 perguntas realizadas |
+| `SQL code`       |                                        |
+
+```sql
+CREATE FUNCTION award_badge_on_first_100_question() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF(SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 100 THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 5);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_100_question
+    AFTER INSERT ON question
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_100_question();
+```
+
+Tabela 48 - Gatilho para verificar a atribuição do *emblema das primeiras 100 perguntas*
+
+| **Trigger**      | TRIGGER20                             |
+| ---              | ---                                    |
+| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema das primeiras 100 respostas realizadas |
+| `SQL code`       |                                        |
+
+```sql
+CREATE FUNCTION award_badge_on_first_100_answer() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) = 100 THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 6);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_100_answer
+    AFTER INSERT ON answer
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_100_answer();
+```
+
+Tabela 49 - Gatilho para verificar a atribuição do *emblema das primeiras 100 respostas*
 
 ### 4. Transações
  

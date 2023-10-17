@@ -10,23 +10,17 @@ VALUES
     ('user4', 'user4@example.com', 'password4', '2023-04-01', false, false, 'image4.jpg');
 
 -- Insert sample data into the 'notification' table
-I
+
 
 -- Insert sample data into the 'badge' table
-INSERT INTO badge (name)
+INSERT INTO badge (id, name)
 VALUES
-    ('Badge 1'),
-    ('Badge 2'),
-    ('Badge 3'),
-    ('Badge 4');
-
--- Insert sample data into the 'user_earns_badge' table
-INSERT INTO user_earns_badge (id_user, id_badge)
-VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3),
-    (4, 4);
+    (1, 'First Question'),
+    (2, 'First Answer'),
+    (3, 'First Comment on Question'),
+    (4, 'First Comment on Answer'),
+    (5, 'First 100 Questions'),
+    (6, 'First 100 Answer');
 
 -- Insert sample data into the 'tag' table
 INSERT INTO tag (name)
@@ -144,7 +138,7 @@ VALUES
 
 -- Make sure to generate appropriate sample data for each row in the remaining tables.
 
-SELECT * FROM notification;
+SELECT * FROM user_earns_badge;
 
 
 

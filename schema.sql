@@ -21,6 +21,13 @@ DROP TABLE IF EXISTS badge CASCADE;
 DROP TABLE IF EXISTS notification CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
+DROP FUNCTION IF EXISTS award_badge_on_first_100_answer CASCADE;
+DROP FUNCTION IF EXISTS award_badge_on_first_100_question CASCADE;
+DROP FUNCTION IF EXISTS award_badge_on_first_comment_answer CASCADE;
+DROP FUNCTION IF EXISTS award_badge_on_first_comment_question CASCADE;
+DROP FUNCTION IF EXISTS award_badge_on_first_answer CASCADE;
+
+DROP FUNCTION IF EXISTS award_badge_on_first_question CASCADE;
 DROP FUNCTION IF EXISTS new_badge_notification CASCADE;
 DROP FUNCTION IF EXISTS new_answer_comment_notification CASCADE;
 DROP FUNCTION IF EXISTS new_question_comment_notification CASCADE;
@@ -625,20 +632,100 @@ CREATE TRIGGER new_badge_notification
     EXECUTE PROCEDURE new_badge_notification();
 
 
-CREATE OR REPLACE FUNCTION award_badge_on_first_question() RETURNS trigger AS 
+CREATE FUNCTION award_badge_on_first_question() RETURNS trigger AS 
 $BODY$
 BEGIN
-    IF (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 1 THEN
-        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, );
+    IF EXISTS (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 1);
     END IF;
     RETURN NEW;
 END
 $BODY$
-LANGUAGE 'plpgsql';
+LANGUAGE plpgsql;
 
-CREATE TRIGGER first_question_badge_trigger
+CREATE TRIGGER award_badge_on_first_question
     AFTER INSERT ON question
     FOR EACH ROW
     EXECUTE PROCEDURE award_badge_on_first_question();
 
+CREATE FUNCTION award_badge_on_first_answer() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF EXISTS (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 2);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
 
+CREATE TRIGGER award_badge_on_first_answer
+    AFTER INSERT ON answer
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_answer();
+
+CREATE FUNCTION award_badge_on_first_comment_question() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF EXISTS (SELECT COUNT(*) FROM question_comment WHERE id_user = NEW.id_user) THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 3);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_comment_question
+    AFTER INSERT ON question_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_comment_question();
+
+CREATE FUNCTION award_badge_on_first_comment_answer() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF EXISTS (SELECT COUNT(*) FROM answer_comment WHERE id_user = NEW.id_user) THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 4);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_comment_answer
+    AFTER INSERT ON answer_comment
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_comment_answer();
+
+
+
+CREATE FUNCTION award_badge_on_first_100_question() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF(SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 100 THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 5);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_100_question
+    AFTER INSERT ON question
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_100_question();
+
+CREATE FUNCTION award_badge_on_first_100_answer() RETURNS trigger AS 
+$BODY$
+BEGIN
+    IF (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) = 100 THEN
+        INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 6);
+    END IF;
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER award_badge_on_first_100_answer
+    AFTER INSERT ON answer
+    FOR EACH ROW
+    EXECUTE PROCEDURE award_badge_on_first_100_answer();
