@@ -22,9 +22,9 @@ As restrições e regras de negócio que não puderam ser incluídas no diagrama
 
 | Identificador | Descrição |
 | ------------- | --------- |
-| BR01 | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa publicação (*Post*) da qual é autor
-| BR02 | Nenhum utilizador autenticado (*User*) pode publicar uma resposta (*Answer*) numa pergunta (*Question*) da qual é autor
-| BR03 | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa publicação (*Post*) da qual é autor
+| BR01 | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa publicação (*Post*) da qual é autor |
+| BR02 | Nenhum utilizador autenticado (*User*) pode publicar uma resposta (*Answer*) numa pergunta (*Question*) da qual é autor |
+| BR03 | Nenhum utilizador autenticado (*User*) pode publicar um comentário (*Comment*) numa publicação (*Post*) da qual é autor |
 | BR04 | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo |
 | BR05 | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade |
 | BR06 | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 |

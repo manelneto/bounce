@@ -1,3 +1,5 @@
+SET search_path TO lbaw23114;
+
 -- Sample data for the 'users' table
 INSERT INTO users (username, email, password, register_date, administrator, blocked, image)
 VALUES
@@ -113,8 +115,8 @@ INSERT INTO question_comment (content, date, last_edited, id_user, id_question)
 VALUES
     ('Great question!', '2023-10-16', NULL, 2, 1),
     ('I can help with this.', '2023-10-16', NULL, 1, 2),
-    ('Please share the recipe!', '2023-10-16', NULL, 3, 3),
-    ('I have some travel tips.', '2023-10-16', NULL, 4, 4);
+    ('Please share the recipe!', '2023-10-16', NULL, 4, 3),
+    ('I have some travel tips.', '2023-10-16', NULL, 3, 4);
 
 -- Sample data for the 'answer' table
 INSERT INTO answer (content, date, file, last_edited, correct, id_user, id_question)

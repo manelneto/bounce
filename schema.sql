@@ -31,9 +31,6 @@ DROP FUNCTION IF EXISTS check_file_extension CASCADE;
 DROP FUNCTION IF EXISTS check_expert_status CASCADE;
 DROP FUNCTION IF EXISTS calculate_user_rating CASCADE;
 DROP FUNCTION IF EXISTS update_content_on_user_deletion CASCADE;
-DROP FUNCTION IF EXISTS prevent_self_comment_on_answer CASCADE;
-DROP FUNCTION IF EXISTS prevent_self_comment_on_question CASCADE;
-DROP FUNCTION IF EXISTS prevent_self_answer CASCADE;
 DROP FUNCTION IF EXISTS prevent_self_vote_on_answer CASCADE;
 DROP FUNCTION IF EXISTS prevent_self_vote_on_question CASCADE;
 
@@ -354,7 +351,7 @@ CREATE TRIGGER prevent_self_vote_on_answer
     FOR EACH ROW
     EXECUTE PROCEDURE prevent_self_vote_on_answer();
 
-
+/*
 --BR02
 CREATE FUNCTION prevent_self_answer() RETURNS TRIGGER AS
 $BODY$
@@ -371,8 +368,8 @@ CREATE TRIGGER prevent_self_answer
     BEFORE INSERT ON answer
     FOR EACH ROW
     EXECUTE PROCEDURE prevent_self_answer();
-
-
+*/
+/*
 -- BR03
 CREATE FUNCTION prevent_self_comment_on_question() RETURNS TRIGGER AS
 $BODY$
@@ -406,7 +403,7 @@ CREATE TRIGGER prevent_self_comment_on_answer
     BEFORE INSERT ON answer_comment
     FOR EACH ROW
     EXECUTE PROCEDURE prevent_self_comment_on_answer();
-
+*/
 
 -- BR04
 CREATE FUNCTION update_content_on_user_deletion() RETURNS TRIGGER AS
@@ -438,16 +435,20 @@ BEGIN
     WHERE answer.id = NEW.id_answer;
 
     SELECT id_community INTO id_c
-    FROM answer
+    FROM answer NATURAL JOIN question
     WHERE answer.id = NEW.id_answer;
 
     SELECT COUNT(*) INTO total_likes
-    FROM answer_vote JOIN answer ON answer_vote.id_answer = answer.id
-    WHERE answer.id_user = id_author AND answer.id_community = id_c AND answer_vote.like = TRUE;
+    FROM question NATURAL JOIN answer JOIN answer_vote ON answer_vote.id_answer = answer.id 
+    WHERE answer.id_user = id_author AND question.id_community = id_c AND answer_vote.likes = TRUE;
 
     SELECT COUNT(*) INTO total_dislikes
-    FROM answer_vote JOIN answer ON answer_vote.id_answer = answer.id
-    WHERE answer.id_user = id_author AND answer.id_community = id_c AND answer_vote.like = FALSE;
+    FROM question NATURAL JOIN answer JOIN answer_vote ON answer_vote.id_answer = answer.id 
+    WHERE answer.id_user = id_author AND question.id_community = id_c AND answer_vote.likes = FALSE;
+
+    IF total_likes + total_dislikes = 0 THEN
+        RETURN NEW;
+    END IF;
 
     UPDATE reputation
     SET rating = 1000 * total_likes / (total_likes + total_dislikes)
@@ -474,9 +475,11 @@ BEGIN
     SELECT COUNT(*) INTO user_badges FROM user_earns_badge WHERE id_user = NEW.id_user;
 
     IF total_badges = user_badges AND NEW.rating > 800 THEN
-        UPDATE reputation SET expert = TRUE WHERE id_user = NEW.id_user AND id_community = NEW.id_community;
+        SET NEW.expert = TRUE;
+        -- UPDATE reputation SET expert = TRUE WHERE id_user = NEW.id_user AND id_community = NEW.id_community;
     ELSE
-        UPDATE reputation SET expert = FALSE WHERE id_user = NEW.id_user AND id_community = NEW.id_community;
+        SET NEW.expert = FALSE;
+        -- UPDATE reputation SET expert = FALSE WHERE id_user = NEW.id_user AND id_community = NEW.id_community;
     END IF;
     RETURN NEW;
 END
@@ -493,12 +496,12 @@ CREATE TRIGGER check_expert_status
 CREATE FUNCTION check_file_extension() RETURNS TRIGGER AS
 $BODY$
 BEGIN
-    IF NEW.file NOT LIKE 'jpg' AND 
-       NEW.file NOT LIKE 'jpeg' AND 
-       NEW.file NOT LIKE 'png' AND 
-       NEW.file NOT LIKE 'txt' AND 
-       NEW.file NOT LIKE 'pdf' AND 
-       NEW.file NOT LIKE 'doc' THEN
+    IF NEW.file NOT LIKE '%.jpg' AND 
+       NEW.file NOT LIKE '%.jpeg' AND 
+       NEW.file NOT LIKE '%.png' AND 
+       NEW.file NOT LIKE '%.txt' AND 
+       NEW.file NOT LIKE '%.pdf' AND 
+       NEW.file NOT LIKE '%.doc' THEN
        RAISE EXCEPTION 'Invalid file extension. Only jpg, jpeg, png, txt, pdf, doc are allowed.';
     END IF;
     RETURN NEW;
@@ -537,7 +540,7 @@ CREATE TRIGGER check_question_vote
 CREATE FUNCTION check_answer_vote() RETURNS TRIGGER AS
 $BODY$
 BEGIN
-    IF EXISTS (SELECT id_user FROM answer_vote WHERE id_question = NEW.id_question AND id_user = NEW.id_user) THEN
+    IF EXISTS (SELECT id_user FROM answer_vote WHERE id_answer = NEW.id_answer AND id_user = NEW.id_user) THEN
         RAISE EXCEPTION 'Each user can only vote once on each answer.';
     END IF;
     RETURN NEW;
@@ -632,12 +635,12 @@ DECLARE
     author INTEGER;
     q_title VARCHAR(255);
 BEGIN
-    SELECT id_user, title INTO author, q_title
-    FROM question
-    WHERE id = NEW.id_question;
+    SELECT answer.id_user, title INTO author, q_title
+    FROM answer JOIN question ON answer.id_question = question.id
+    WHERE answer.id = NEW.id_answer;
 
     INSERT INTO notification (content, date, read, id_user)
-    VALUES (CONCAT('You received a new comment on your answer: ', q_title, '!'), CURRENT_DATE, FALSE, author);
+    VALUES (CONCAT('You received a new comment on your answer to the question: ', q_title, '!'), CURRENT_DATE, FALSE, author);
 
     RETURN NEW;
 END
@@ -657,7 +660,7 @@ DECLARE
     b_name VARCHAR(255);
 BEGIN
     SELECT id_user, name INTO winner, b_name
-    FROM badge
+    FROM user_earns_badge NATURAL JOIN badge
     WHERE id = NEW.id_badge;
 
     INSERT INTO notification (content, date, read, id_user)
