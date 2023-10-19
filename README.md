@@ -1,6 +1,22 @@
 # Bounce 
 
-## Descrição do jogo
+## Identificação do Tópico e Grupo
+
+Jogo número 4 **Bounce** - https://marksteeregames.com/Bounce_rules.pdf
+
+Grupo Bounce_5
+
+Manuel Ramos Leite Carvalho Neto up202108744
+
+Matilde Isabel da Silva Simões up202108782
+
+A contribuição de cada elemento do grupo é 50%.
+
+## Instalação e Execução
+
+?
+
+## Descrição do Jogo
 
 Bounce é um jogo estratégico para dois jogadores que se desenrola num tabuleiro quadrado de tamanho par. Inicialmente, o tabuleiro é configurado com um padrão de peças vermelhas e azuis, deixando os quatro cantos vazios.
 
@@ -11,3 +27,16 @@ Por exemplo, se um jogador vermelho tem uma peça que faz parte de um grupo de t
 Se um jogador não tem nenhuma jogada disponível durante o seu turno, ele é obrigado a remover uma das suas peças do tabuleiro, encerrando assim a sua jogada.
 
 O jogador ganha ao conseguir, durante o seu turno, agrupar todas as suas peças num único conjunto conectado. Isso significa que todas as peças do jogador devem estar num único grupo, que é formado por todas as peças da mesma cor que estão adjacentes horizontal ou verticalmente.
+
+O ficheiro utilizado obter a informação descrita anteriormente foi https://marksteeregames.com/Bounce_rules.pdf .
+
+## Lógica do Jogo
+
+## Conclusões
+
+## Bibliografia
+
+- https://marksteeregames.com/Bounce_rules.pdf
+
+
+
