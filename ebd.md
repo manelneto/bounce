@@ -1113,13 +1113,13 @@ Tabela 49 - Gatilho para verificar a atribuição do *emblema das primeiras 100 
 
 
 ### 4. Transações
- 
-As transações desempenham um papel crucial na garantia da integridade e da consistência dos dados, permitindo que múltiplos utilizadores acedam e modifiquem as mesmas informações de forma segura e coordenada.
+
+As transações desempenham um papel crucial na garantia da integridade e da consistência dos dados, permitindo que múltiplos utilizadores acedam e modifiquem as mesmas informações na base de dados de forma segura e coordenada.
 
 | **Transação** | TRAN01 |
 | ------------- | ------ |
 | **Descrição** | Obter os comentários, as respostas e os comentários das respostas a uma pergunta |
-| **Justificação** | TODO |
+| **Justificação** | No meio da transação, poderiam ser publicados novos comentários, respostas ou comentários às respostas de uma pergunta, o que resultaria num *Phantom Read* - esta transação resolve esse problema (é READ ONLY porque só faz operações de seleção) |
 | **Nível de Isolamento** | SERIALIZABLE READ ONLY |
 | **Código SQL** | |
 ```sql
@@ -1127,8 +1127,13 @@ BEGIN TRANSACTION;
 
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE READ ONLY;
 
+-- Obter a pergunta
+SELECT title, content, date, file, last_edited, username, image
+FROM question JOIN users ON question.id_user = users.id
+WHERE question.id = $id_question;
+
 -- Obter os comentários da pergunta
-SELECT content, date, last_edited, username, image
+SELECT content, date, last_edited, username
 FROM question JOIN question_comment ON question.id = question_comment.id_question JOIN users ON question_comment.id_user = users.id
 WHERE question.id = $id_question;
 
@@ -1150,7 +1155,7 @@ Tabela 50 - Transação para obter os comentários, as respostas e os comentári
 | **Transação** | TRAN02 |
 | ------------- | ------ |
 | **Descrição** | Pesquisar perguntas por *tags* |
-| **Justificação** | TODO |
+| **Justificação** | No meio da transação, poderiam ser criadas/removidas *tags* da base de dados, o que resultaria num *Phantom Read* - esta transação resolve esse problema (é READ ONLY porque só faz operações de seleção) |
 | **Nível de Isolamento** | SERIALIZABLE READ ONLY |
 | **Código SQL** | |
 ```sql
@@ -1175,7 +1180,7 @@ Tabela 51 - Transação para pesquisar perguntas por *tags*
 | **Transação** | TRAN03 |
 | ------------- | ------ |
 | **Descrição** | Ver fóruns das comunidades |
-| **Justificação** | TODO |
+| **Justificação** | No meio da transação, poderiam ser criadas/removidas comunidades da base de dados, o que resultaria num *Phantom Read* - esta transação resolve esse problema (é READ ONLY porque só faz operações de seleção) |
 | **Nível de Isolamento** | SERIALIZABLE READ ONLY |
 | **Código SQL** | |
 ```sql
@@ -1200,19 +1205,19 @@ Tabela 52 - Transação para ver fóruns das comunidades
 | **Transação** | TRAN04 |
 | ------------- | ------ |
 | **Descrição** | Publicar perguntas com *tags* |
-| **Justificação** | TODO |
+| **Justificação** | No meio da transação, poderia ser inserida outra questão na base de dados, atualizando inesperadamente o valor de *question_id_seq* e armazenando informação inconsistente na base de dados - esta transação soluciona esse problema |
 | **Nível de Isolamento** | REPEATABLE READ |
 | **Código SQL** | |
 ```sql
 BEGIN TRANSACTION;
 
-SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 
 -- Inserir uma pergunta
 INSERT INTO question (content, date, file, last_edited, title, id_user, id_community)
 VALUES ($content, $date, $file, $last_edited, $title, $id_user, $id_community);
 
--- Associar uma tag à pergunta
+-- Associar a tag à pergunta
 INSERT INTO question_tags (id_question, id_tag)
 VALUES (currval('question_id_seq'), $id_tag);
 
@@ -1223,34 +1228,244 @@ Tabela 53 - Transação para publicar perguntas com *tags*
 
 | **Transação** | TRAN05 |
 | ------------- | ------ |
-| **Descrição** | Obter o número de notificações por ler e essas notificações |
-| **Justificação** | TODO |
-| **Nível de Isolamento** | SERIALIZABLE READ ONLY |
+| **Descrição** | Votar numa pergunta |
+| **Justificação** | No meio da transação, poderia ser removida/editada a pergunta da base de dados, o que resultaria num *Non-Repeatable Read* - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
 | **Código SQL** | |
 ```sql
 BEGIN TRANSACTION;
 
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE READ ONLY;
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 
--- Obter o número de notificações por ler
-SELECT COUNT(*)
-FROM notification
-WHERE id_user = $id_user AND read = FALSE;
+-- Obter a pergunta
+SELECT title, content, date, file, last_edited, username, image
+FROM question JOIN users ON question.id_user = users.id
+WHERE question.id = $id_question;
 
--- Obter as notificações por ler
-SELECT content, date
-FROM notification
-WHERE id_user = $id_user AND read = FALSE;
+-- Votar na pergunta
+INSERT INTO question_vote (id_question, id_user, likes)
+VALUES ($id_question, $id_user, $likes);
 
 END TRANSACTION;
 ```
 
-Tabela 54 - Transação para obter o número de notificações por ler e essas notificações
+Tabela 54 - Transação para votar numa pergunta
 
 | **Transação** | TRAN06 |
 | ------------- | ------ |
+| **Descrição** | Votar numa resposta |
+| **Justificação** | No meio da transação, poderia ser removida/editada a resposta da base de dados, o que resultaria num *Non-Repeatable Read* - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Obter a resposta
+SELECT title, content, date, file, last_edited, username, image
+FROM answer JOIN users ON question.id_user = users.id
+WHERE answer.id = $id_answer;
+
+-- Votar na resposta
+INSERT INTO answer_vote (id_answer, id_user, likes)
+VALUES ($id_answer, $id_user, $likes);
+
+END TRANSACTION;
+```
+
+Tabela 55 - Transação para votar numa resposta
+
+| **Transação** | TRAN07 |
+| ------------- | ------ |
+| **Descrição** | Comentar numa pergunta |
+| **Justificação** | No meio da transação, poderia ser removida/editada a pergunta da base de dados, o que resultaria num *Non-Repeatable Read* - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Obter a pergunta
+SELECT title, content, date, file, last_edited, username, image
+FROM question JOIN users ON question.id_user = users.id
+WHERE question.id = $id_question;
+
+-- Comentar na pergunta
+INSERT INTO question_comment (content, id_question, id_user)
+VALUES ($content, $id_question, $id_user);
+
+END TRANSACTION;
+```
+
+Tabela 56 - Transação para comentar numa pergunta
+
+| **Transação** | TRAN08 |
+| ------------- | ------ |
+| **Descrição** | Comentar numa resposta |
+| **Justificação** | No meio da transação, poderia ser removida/editada a resposta da base de dados, o que resultaria num *Non-Repeatable Read* - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Obter a resposta
+SELECT title, content, date, file, last_edited, username, image
+FROM answer JOIN users ON question.id_user = users.id
+WHERE answer.id = $id_answer;
+
+-- Comentar na resposta
+INSERT INTO answer_comment (content, id_answer, id_user)
+VALUES ($content, $id_answer, $id_user);
+
+END TRANSACTION;
+```
+
+Tabela 57 - Transação para comentar numa resposta
+
+| **Transação** | TRAN09 |
+| ------------- | ------ |
+| **Descrição** | Mostrar interesse numa pergunta |
+| **Justificação** | No meio da transação, poderia ser removida/editada a pergunta da base de dados, o que resultaria num *Non-Repeatable Read* - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Obter a pergunta
+SELECT title, content, date, file, last_edited, username, image
+FROM question JOIN users ON question.id_user = users.id
+WHERE question.id = $id_question;
+
+-- Mostrar interesse na pergunta
+INSERT INTO user_follows_question (id_user, id_question)
+VALUES ($id_user, $id_question);
+
+END TRANSACTION;
+```
+
+Tabela 58 - Transação para mostrar interesse numa pergunta
+
+| **Transação** | TRAN10 |
+| ------------- | ------ |
+| **Descrição** | Mostrar interesse numa *tag* |
+| **Justificação** | No meio da transação, poderia ser removida/editada a *tag* da base de dados, o que resultaria num *Non-Repeatable Read* - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Obter as tags
+SELECT name
+FROM tag;
+
+-- Mostrar interesse na tag
+INSERT INTO user_follows_tag (id_user, id_tag)
+VALUES ($id_user, $id_tag);
+
+END TRANSACTION;
+```
+
+Tabela 59 - Transação para mostrar interesse numa *tag*
+
+| **Transação** | TRAN11 |
+| ------------- | ------ |
+| **Descrição** | Receber uma notificação de uma resposta |
+| **Justificação** | No meio da transação, poderia ser publicada outra resposta que levasse a uma atualização na tabela de notificações, armazenando informação inconsistente na base de dados - esta transação resolve esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Publicar a resposta
+INSERT INTO answer (content, file, id_user, id_question)
+VALUES ($answer_content, $file, $id_user, $id_question);
+
+-- Obter o autor da pergunta ($id_author)
+SELECT id_user
+FROM question
+WHERE id = $id_question;
+
+-- Receber a notificação
+INSERT INTO notification (content, id_user)
+VALUES ($notification_content, $id_author);
+
+END TRANSACTION;
+```
+
+Tabela 60 - Transação para receber uma notificação de uma resposta
+
+| **Transação** | TRAN12 |
+| ------------- | ------ |
+| **Descrição** | Receber uma notificação de um voto numa pergunta |
+| **Justificação** | No meio da transação, poderia ser publicada outro voto numa pergunta que levasse a uma atualização na tabela de notificações, armazenando informação inconsistente na base de dados - esta transação resolve esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Publicar o voto
+INSERT INTO question_vote (id_user, id_question, likes)
+VALUES ($id_user, $id_question, $likes);
+
+-- Obter o autor da pergunta ($id_author)
+SELECT id_user
+FROM question
+WHERE id = $id_question;
+
+-- Receber a notificação
+INSERT INTO notification (content, id_user)
+VALUES ($content, $id_author);
+
+END TRANSACTION;
+```
+
+Tabela 61 - Transação para receber uma notificação de um voto numa pergunta
+
+| **Transação** | TRAN13 |
+| ------------- | ------ |
+| **Descrição** | Receber uma notificação de um voto numa resposta |
+| **Justificação** | No meio da transação, poderia ser publicada outro voto numa resposta que levasse a uma atualização na tabela de notificações, armazenando informação inconsistente na base de dados - esta transação resolve esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Publicar o voto
+INSERT INTO answer_vote (id_user, id_answer, likes)
+VALUES ($id_user, $id_answer, $likes);
+
+-- Obter o autor da resposta ($id_author)
+SELECT id_user
+FROM answer
+WHERE id = $id_answer;
+
+-- Receber a notificação
+INSERT INTO notification (content, id_user)
+VALUES ($content, $id_author);
+
+END TRANSACTION;
+```
+
+Tabela 62 - Transação para receber uma notificação de um voto numa resposta
+
+| **Transação** | TRAN14 |
+| ------------- | ------ |
 | **Descrição** | Obter o número de notificações por ler e essas notificações |
-| **Justificação** | TODO |
+| **Justificação** | No meio da transação, poderiam ser publicadas novas notificações (por ler), o que resultaria num *Phantom Read* - esta transação resolve esse problema (é READ ONLY porque só faz operações de seleção) |
 | **Nível de Isolamento** | SERIALIZABLE READ ONLY |
 | **Código SQL** | |
 ```sql
@@ -1271,7 +1486,164 @@ WHERE id_user = $id_user AND read = FALSE;
 END TRANSACTION;
 ```
 
-Tabela 54 - Transação para obter o número de notificações por ler e essas notificações
+Tabela 63 - Transação para obter o número de notificações por ler e essas notificações
+
+| **Transação** | TRAN15 |
+| ------------- | ------ |
+| **Descrição** | Receber uma notificação de um emblema ganho |
+| **Justificação** | No meio da transação, poderia ser ganho um emblema por outro utilizador, atualizando inesperadamente o valor de *user_earns_badge_id_user_seq* e armazenando informação inconsistente na base de dados - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Ganhar o emblema
+INSERT INTO user_earns_badge (id_user, id_badge)
+VALUES ($id_user, $id_badge);
+
+-- Receber a notificação
+INSERT INTO notification (content, id_user)
+VALUES ($content, currval('user_earns_badge_id_user_seq'));
+
+END TRANSACTION;
+```
+
+Tabela 64 - Transação para receber uma notificação de um emblema ganho
+
+| **Transação** | TRAN16 |
+| ------------- | ------ |
+| **Descrição** | Receber uma notificação de um comentário numa pergunta |
+| **Justificação** | No meio da transação, poderia ser publicado outro comentário numa pergunta que levasse a uma atualização na tabela de notificações, armazenando informação inconsistente na base de dados - esta transação resolve esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Publicar o comentário
+INSERT INTO question_comment (content, id_user, id_question)
+VALUES ($content, $id_user, $id_question);
+
+-- Obter o autor da pergunta ($id_author)
+SELECT id_user
+FROM question
+WHERE id = $id_question;
+
+-- Receber a notificação
+INSERT INTO notification (content, id_user)
+VALUES ($content, $id_author);
+
+END TRANSACTION;
+```
+
+Tabela 65 - Transação para receber uma notificação de um comentário numa pergunta
+
+| **Transação** | TRAN17 |
+| ------------- | ------ |
+| **Descrição** | Receber uma notificação de um comentário numa resposta |
+| **Justificação** | No meio da transação, poderia ser publicado outro comentário numa resposta que levasse a uma atualização na tabela de notificações, armazenando informação inconsistente na base de dados - esta transação resolve esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Publicar o comentário
+INSERT INTO answer_comment (content, id_user, id_answer)
+VALUES ($content, $id_user, $id_answer);
+
+-- Obter o autor da resposta ($id_author)
+SELECT id_user
+FROM answer
+WHERE id = $id_answer;
+
+-- Receber a notificação
+INSERT INTO notification (content, id_user)
+VALUES ($content, $id_author);
+
+END TRANSACTION;
+```
+
+Tabela 66 - Transação para receber uma notificação de um comentário numa resposta
+
+| **Transação** | TRAN18 |
+| ------------- | ------ |
+| **Descrição** | Seguir uma comunidade |
+| **Justificação** | No meio da transação, poderia ser removida/editada a comunidade da base de dados, o que resultaria num *Non-Repeatable Read* - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Obter as comunidades
+SELECT name
+FROM tag;
+
+-- Seguir uma comuniadde
+INSERT INTO user_follows_community (id_user, id_community)
+VALUES ($id_user, $id_community);
+
+END TRANSACTION;
+```
+
+Tabela 67 - Transação para seguir uma comunidade
+
+| **Transação** | TRAN19 |
+| ------------- | ------ |
+| **Descrição** | Editar *tags* de uma pergunta |
+| **Justificação** | No meio da transação, poderiam ser removidas/editadas *tags* da base de dados, o que resultaria num *Non-Repeatable Read* - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Obter as tags
+SELECT name
+FROM tag;
+
+-- Editar as tags de uma pergunta
+UPDATE question_tags
+SET id_tag = $id_tag
+WHERE id_question = $id_question;
+
+END TRANSACTION;
+```
+
+Tabela 68 - Transação para editar as *tags* de uma pergunta
+
+| **Transação** | TRAN20 |
+| ------------- | ------ |
+| **Descrição** | Marcar uma resposta como correta |
+| **Justificação** | No meio da transação, poderia ser removida/editada a pergunta da base de dados, o que resultaria num *Non-Repeatable Read* - esta transação soluciona esse problema |
+| **Nível de Isolamento** | REPEATABLE READ |
+| **Código SQL** | |
+```sql
+BEGIN TRANSACTION;
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Obter as respostas a uma pergunta
+SELECT content, date, file, last_edited, username, image
+FROM question JOIN answer ON question.id = answer.id_question JOIN users ON answer.id_user = users.id
+WHERE question.id = $id_question;
+
+-- Marcar uma resposta como correta
+UPDATE answer
+SET correct = TRUE
+WHERE id_answer = $id_answer;
+
+END TRANSACTION;
+```
+
+Tabela 69 - Transação para marcar uma resposta como correta
 
 ## Anexo A. Código SQL
 
