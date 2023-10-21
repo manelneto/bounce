@@ -21,17 +21,20 @@ DROP TABLE IF EXISTS badge CASCADE;
 DROP TABLE IF EXISTS notification CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
+DROP FUNCTION IF EXISTS content_search_update CASCADE;
+DROP FUNCTION IF EXISTS question_search_update CASCADE;
+
 DROP FUNCTION IF EXISTS award_badge_on_first_100_answer CASCADE;
 DROP FUNCTION IF EXISTS award_badge_on_first_100_question CASCADE;
 DROP FUNCTION IF EXISTS award_badge_on_first_comment_answer CASCADE;
 DROP FUNCTION IF EXISTS award_badge_on_first_comment_question CASCADE;
 DROP FUNCTION IF EXISTS award_badge_on_first_answer CASCADE;
-
 DROP FUNCTION IF EXISTS award_badge_on_first_question CASCADE;
 DROP FUNCTION IF EXISTS new_badge_notification CASCADE;
 DROP FUNCTION IF EXISTS new_answer_comment_notification CASCADE;
 DROP FUNCTION IF EXISTS new_question_comment_notification CASCADE;
-DROP FUNCTION IF EXISTS new_vote_notification CASCADE;
+DROP FUNCTION IF EXISTS new_answer_vote_notification CASCADE;
+DROP FUNCTION IF EXISTS new_question_vote_notification CASCADE;
 DROP FUNCTION IF EXISTS new_answer_notification CASCADE;
 DROP FUNCTION IF EXISTS check_answer_vote CASCADE;
 DROP FUNCTION IF EXISTS check_question_vote CASCADE;
@@ -43,25 +46,26 @@ DROP FUNCTION IF EXISTS prevent_self_vote_on_answer CASCADE;
 DROP FUNCTION IF EXISTS prevent_self_vote_on_question CASCADE;
 
 
-CREATE TABLE users ( -- a plural 'users' was adopted because 'user' is a reserved word in PostgreSQL
+-- Tabelas
+
+
+CREATE TABLE users ( -- 'users' porque 'user' é uma palavra reservada em PostgreSQL
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL CONSTRAINT user_username_uk UNIQUE,
     email VARCHAR(255) NOT NULL CONSTRAINT user_email_uk UNIQUE,
     password VARCHAR(255) NOT NULL,
-    register_date DATE NOT NULL,
+    register_date DATE NOT NULL DEFAULT CURRENT_DATE,
     administrator BOOLEAN NOT NULL DEFAULT FALSE,
     blocked BOOLEAN NOT NULL DEFAULT FALSE,
-    image VARCHAR(255),
-    CONSTRAINT users_register_date_ck CHECK (register_date <= CURRENT_DATE)
+    image VARCHAR(255)
 );
 
 CREATE TABLE notification (
     id SERIAL PRIMARY KEY,
     content TEXT NOT NULL,
-    date DATE NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
     read BOOLEAN NOT NULL DEFAULT FALSE,
-    id_user INTEGER NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT notification_date_ck CHECK (date <= CURRENT_DATE)
+    id_user INTEGER NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE badge (
@@ -121,8 +125,7 @@ CREATE TABLE question (
     title TEXT NOT NULL,
     id_user INTEGER NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     id_community INTEGER NOT NULL REFERENCES community (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT question_date_ck CHECK (date <= CURRENT_DATE),
-    CONSTRAINT question_last_edited_ck CHECK (last_edited <= CURRENT_DATE AND last_edited >= date)
+    CONSTRAINT question_last_edited_ck CHECK (last_edited >= date)
 );
 
 CREATE TABLE user_follows_question (
@@ -140,63 +143,62 @@ CREATE TABLE question_tags (
 CREATE TABLE question_vote (
     id_question INTEGER REFERENCES question (id) ON UPDATE CASCADE ON DELETE CASCADE,
     id_user INTEGER REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    likes BOOLEAN NOT NULL, -- a plural 'likes' was adopted because 'like' is a reserved word in PostgreSQL
+    likes BOOLEAN NOT NULL, -- 'likes' porque 'like' é uma palavra reservada em PostgreSQL
     PRIMARY KEY (id_question, id_user)
 );
 
 CREATE TABLE question_comment (
     id SERIAL PRIMARY KEY,
     content TEXT NOT NULL,
-    date DATE NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
     last_edited DATE,
     id_user INTEGER NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     id_question INTEGER NOT NULL REFERENCES question (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT question_comment_date_ck CHECK (date <= CURRENT_DATE),
-    CONSTRAINT question_comment_last_edited_ck CHECK (last_edited <= CURRENT_DATE AND last_edited >= date)
+    CONSTRAINT question_comment_last_edited_ck CHECK (last_edited >= date)
 );
 
 CREATE TABLE answer (
     id SERIAL PRIMARY KEY,
     content TEXT NOT NULL,
-    date DATE NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
     file VARCHAR(255),
     last_edited DATE,
     correct BOOLEAN NOT NULL DEFAULT FALSE,
     id_user INTEGER NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     id_question INT NOT NULL REFERENCES question (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT answer_date_ck CHECK (date <= CURRENT_DATE),
-    CONSTRAINT answer_last_edited_ck CHECK (last_edited <= CURRENT_DATE AND last_edited >= date)
+    CONSTRAINT answer_last_edited_ck CHECK (last_edited >= date)
 );
 
 CREATE TABLE answer_vote (
     id_answer INTEGER REFERENCES answer (id) ON UPDATE CASCADE ON DELETE CASCADE,
     id_user INTEGER REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    likes BOOLEAN NOT NULL, -- a plural 'likes' was adopted because 'like' is a reserved word in PostgreSQL
+    likes BOOLEAN NOT NULL, -- 'likes' porque 'like' é uma palavra reservada em PostgreSQL
     PRIMARY KEY (id_answer, id_user)
 );
 
 CREATE TABLE answer_comment (
     id SERIAL PRIMARY KEY,
     content TEXT NOT NULL,
-    date DATE NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
     last_edited DATE,
     id_user INTEGER REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     id_answer INTEGER REFERENCES answer (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT answer_comment_date_ck CHECK (date <= CURRENT_DATE),
-    CONSTRAINT answer_comment_ck CHECK (last_edited <= CURRENT_DATE AND last_edited >= date)
+    CONSTRAINT answer_comment_ck CHECK (last_edited >= date)
 );
 
 
--- Índices
+-- Índices de Desempenho
+
 
 CREATE INDEX user_notification ON notification USING hash (id_user);
-
 
 CREATE INDEX community_question ON question USING btree (id_community);
 CLUSTER question USING community_question;
 
-
 CREATE INDEX question_question_vote ON question_vote USING hash (id_question);
+
+
+-- Índices para Full-Text Search
 
 
 -- Adicionar à tabela question uma coluna para armazenar os ts_vectors computados
@@ -234,12 +236,8 @@ CREATE TRIGGER question_search_update
 CREATE INDEX question_search_idx ON question USING GIN (tsvectors);
 
 
--- Adicionar à tabela answer uma coluna para armazenar os ts_vectors computados
-ALTER TABLE answer
-ADD COLUMN tsvectors TSVECTOR;
-
 -- Criar uma função para atualizar automaticamente os ts_vectors
-CREATE OR REPLACE FUNCTION answer_search_update() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION content_search_update() RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
         NEW.tsvectors = to_tsvector('english', NEW.content);
@@ -253,11 +251,16 @@ BEGIN
 END $$
 LANGUAGE plpgsql;
 
+
+-- Adicionar à tabela answer uma coluna para armazenar os ts_vectors computados
+ALTER TABLE answer
+ADD COLUMN tsvectors TSVECTOR;
+
 -- Criar um gatilho para executar antes de inserções e atualizações na tabela question
 CREATE TRIGGER answer_search_update
     BEFORE INSERT OR UPDATE ON answer
     FOR EACH ROW
-    EXECUTE PROCEDURE answer_search_update();
+    EXECUTE PROCEDURE content_search_update();
 
 -- Criar um índice GIN para os ts_vectors
 CREATE INDEX answer_search_idx ON answer USING GIN (tsvectors);
@@ -267,26 +270,11 @@ CREATE INDEX answer_search_idx ON answer USING GIN (tsvectors);
 ALTER TABLE question_comment
 ADD COLUMN tsvectors TSVECTOR;
 
--- Criar uma função para atualizar automaticamente os ts_vectors
-CREATE OR REPLACE FUNCTION question_comment_search_update() RETURNS TRIGGER AS $$
-BEGIN
-    IF TG_OP = 'INSERT' THEN
-        NEW.tsvectors = to_tsvector('english', NEW.content);
-    END IF;
-    IF TG_OP = 'UPDATE' THEN
-        IF NEW.content <> OLD.content THEN
-            NEW.tsvectors = to_tsvector('english', NEW.content);
-        END IF;
-    END IF;
-    RETURN NEW;
-END $$
-LANGUAGE plpgsql;
-
 -- Criar um gatilho para executar antes de inserções e atualizações na tabela question
 CREATE TRIGGER question_comment_search_update
     BEFORE INSERT OR UPDATE ON question_comment
     FOR EACH ROW
-    EXECUTE PROCEDURE question_comment_search_update();
+    EXECUTE PROCEDURE content_search_update();
 
 -- Criar um índice GIN para os ts_vectors
 CREATE INDEX question_comment_search_idx ON question_comment USING GIN (tsvectors);
@@ -296,36 +284,21 @@ CREATE INDEX question_comment_search_idx ON question_comment USING GIN (tsvector
 ALTER TABLE answer_comment
 ADD COLUMN tsvectors TSVECTOR;
 
--- Criar uma função para atualizar automaticamente os ts_vectors
-CREATE OR REPLACE FUNCTION answer_comment_search_update() RETURNS TRIGGER AS $$
-BEGIN
-    IF TG_OP = 'INSERT' THEN
-        NEW.tsvectors = to_tsvector('english', NEW.content);
-    END IF;
-    IF TG_OP = 'UPDATE' THEN
-        IF NEW.content <> OLD.content THEN
-            NEW.tsvectors = to_tsvector('english', NEW.content);
-        END IF;
-    END IF;
-    RETURN NEW;
-END $$
-LANGUAGE plpgsql;
-
 -- Criar um gatilho para executar antes de inserções e atualizações na tabela question
 CREATE TRIGGER answer_comment_search_update
     BEFORE INSERT OR UPDATE ON answer_comment
     FOR EACH ROW
-    EXECUTE PROCEDURE answer_comment_search_update();
+    EXECUTE PROCEDURE content_search_update();
 
 -- Criar um índice GIN para os ts_vectors
 CREATE INDEX answer_comment_search_idx ON answer_comment USING GIN (tsvectors);
 
 
--- Triggers
+-- Gatilhos
 
 
 -- BR01
-CREATE FUNCTION prevent_self_vote_on_question() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION prevent_self_vote_on_question() RETURNS TRIGGER AS
 $BODY$
 BEGIN
     IF NEW.id_user = (SELECT id_user FROM question WHERE id = NEW.id_question) THEN
@@ -342,7 +315,7 @@ CREATE TRIGGER prevent_self_vote_on_question
     EXECUTE PROCEDURE prevent_self_vote_on_question();
 
 
-CREATE FUNCTION prevent_self_vote_on_answer() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION prevent_self_vote_on_answer() RETURNS TRIGGER AS
 $BODY$
 BEGIN
     IF NEW.id_user = (SELECT id_user FROM answer WHERE id = NEW.id_answer) THEN
@@ -358,8 +331,9 @@ CREATE TRIGGER prevent_self_vote_on_answer
     FOR EACH ROW
     EXECUTE PROCEDURE prevent_self_vote_on_answer();
 
+
 -- BR02
-CREATE FUNCTION update_content_on_user_deletion() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION update_content_on_user_deletion() RETURNS TRIGGER AS
 $BODY$
 BEGIN
     UPDATE users SET username = CONCAT('anonymous', OLD.id), email = CONCAT('anonymous', OLD.id) WHERE id = OLD.id;
@@ -375,7 +349,7 @@ CREATE TRIGGER update_content_on_user_deletion
 
 
 -- BR03
-CREATE FUNCTION calculate_user_rating() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION calculate_user_rating() RETURNS TRIGGER AS
 $BODY$
 DECLARE
     total_likes INTEGER;
@@ -423,7 +397,7 @@ CREATE TRIGGER calculate_user_rating
 
 
 -- BR04
-CREATE FUNCTION check_expert_status() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION check_expert_status() RETURNS TRIGGER AS
 $BODY$
 DECLARE
     total_badges INTEGER;
@@ -449,7 +423,7 @@ CREATE TRIGGER check_expert_status
 
 
 -- BR05
-CREATE FUNCTION check_file_extension() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION check_file_extension() RETURNS TRIGGER AS
 $BODY$
 BEGIN
     IF NEW.file NOT LIKE '%.jpg' AND 
@@ -477,7 +451,7 @@ CREATE TRIGGER check_file_extension_on_answer
 
 
 -- BR06
-CREATE FUNCTION check_question_vote() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION check_question_vote() RETURNS TRIGGER AS
 $BODY$
 BEGIN
     IF EXISTS (SELECT id_user FROM question_vote WHERE id_question = NEW.id_question AND id_user = NEW.id_user) THEN
@@ -493,7 +467,7 @@ CREATE TRIGGER check_question_vote
     FOR EACH ROW
     EXECUTE PROCEDURE check_question_vote();
 
-CREATE FUNCTION check_answer_vote() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION check_answer_vote() RETURNS TRIGGER AS
 $BODY$
 BEGIN
     IF EXISTS (SELECT id_user FROM answer_vote WHERE id_answer = NEW.id_answer AND id_user = NEW.id_user) THEN
@@ -512,7 +486,7 @@ CREATE TRIGGER check_answer_vote
 
 -- Notificações
 
-CREATE FUNCTION new_answer_notification() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION new_answer_notification() RETURNS TRIGGER AS
 $BODY$
 DECLARE
     author INTEGER;
@@ -536,7 +510,7 @@ CREATE TRIGGER new_answer_notification
     EXECUTE PROCEDURE new_answer_notification();
 
 
-CREATE FUNCTION new_vote_notification() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION new_question_vote_notification() RETURNS TRIGGER AS
 $BODY$
 DECLARE
     author INTEGER;
@@ -554,13 +528,37 @@ END
 $BODY$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER new_vote_notification
+CREATE TRIGGER new_question_vote_notification
     AFTER INSERT ON question_vote
     FOR EACH ROW
-    EXECUTE PROCEDURE new_vote_notification();
+    EXECUTE PROCEDURE new_question_vote_notification();
 
 
-CREATE FUNCTION new_question_comment_notification() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION new_answer_vote_notification() RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    author INTEGER;
+    q_title VARCHAR(255);
+BEGIN
+    SELECT id_user, title INTO author, q_title
+    FROM answer JOIN question ON answer.id_question = question.id
+    WHERE id = NEW.id_answer;
+
+    INSERT INTO notification (content, date, read, id_user)
+    VALUES (CONCAT('You received a new vote on your answer to the question: ', q_title, '!'), CURRENT_DATE, FALSE, author);
+
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER new_answer_vote_notification
+    AFTER INSERT ON answer_vote
+    FOR EACH ROW
+    EXECUTE PROCEDURE new_answer_vote_notification();
+
+
+CREATE OR REPLACE FUNCTION new_question_comment_notification() RETURNS TRIGGER AS
 $BODY$
 DECLARE
     author INTEGER;
@@ -584,7 +582,7 @@ CREATE TRIGGER new_question_comment_notification
     EXECUTE PROCEDURE new_question_comment_notification();
 
 
-CREATE FUNCTION new_answer_comment_notification() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION new_answer_comment_notification() RETURNS TRIGGER AS
 $BODY$
 DECLARE
     author INTEGER;
@@ -608,7 +606,7 @@ CREATE TRIGGER new_answer_comment_notification
     EXECUTE PROCEDURE new_answer_comment_notification();
 
 
-CREATE FUNCTION new_badge_notification() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION new_badge_notification() RETURNS TRIGGER AS
 $BODY$
 DECLARE
     winner INTEGER;
@@ -632,10 +630,12 @@ CREATE TRIGGER new_badge_notification
     EXECUTE PROCEDURE new_badge_notification();
 
 
-CREATE FUNCTION award_badge_on_first_question() RETURNS trigger AS 
+-- Emblemas
+
+CREATE OR REPLACE FUNCTION award_badge_on_first_question() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF EXISTS (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) THEN
+    IF (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 1 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 1);
     END IF;
     RETURN NEW;
@@ -648,10 +648,10 @@ CREATE TRIGGER award_badge_on_first_question
     FOR EACH ROW
     EXECUTE PROCEDURE award_badge_on_first_question();
 
-CREATE FUNCTION award_badge_on_first_answer() RETURNS trigger AS 
+CREATE OR REPLACE FUNCTION award_badge_on_first_answer() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF EXISTS (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) THEN
+    IF (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) = 1 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 2);
     END IF;
     RETURN NEW;
@@ -664,10 +664,10 @@ CREATE TRIGGER award_badge_on_first_answer
     FOR EACH ROW
     EXECUTE PROCEDURE award_badge_on_first_answer();
 
-CREATE FUNCTION award_badge_on_first_comment_question() RETURNS trigger AS 
+CREATE OR REPLACE FUNCTION award_badge_on_first_comment_question() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF EXISTS (SELECT COUNT(*) FROM question_comment WHERE id_user = NEW.id_user) THEN
+    IF (SELECT COUNT(*) FROM question_comment WHERE id_user = NEW.id_user) = 1 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 3);
     END IF;
     RETURN NEW;
@@ -680,10 +680,10 @@ CREATE TRIGGER award_badge_on_first_comment_question
     FOR EACH ROW
     EXECUTE PROCEDURE award_badge_on_first_comment_question();
 
-CREATE FUNCTION award_badge_on_first_comment_answer() RETURNS trigger AS 
+CREATE OR REPLACE FUNCTION award_badge_on_first_comment_answer() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF EXISTS (SELECT COUNT(*) FROM answer_comment WHERE id_user = NEW.id_user) THEN
+    IF (SELECT COUNT(*) FROM answer_comment WHERE id_user = NEW.id_user) = 1 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 4);
     END IF;
     RETURN NEW;
@@ -696,11 +696,10 @@ CREATE TRIGGER award_badge_on_first_comment_answer
     FOR EACH ROW
     EXECUTE PROCEDURE award_badge_on_first_comment_answer();
 
-
-CREATE FUNCTION award_badge_on_first_100_question() RETURNS trigger AS 
+CREATE OR REPLACE FUNCTION award_badge_on_first_100_question() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF(SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 100 THEN
+    IF (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 100 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 5);
     END IF;
     RETURN NEW;
@@ -713,7 +712,7 @@ CREATE TRIGGER award_badge_on_first_100_question
     FOR EACH ROW
     EXECUTE PROCEDURE award_badge_on_first_100_question();
 
-CREATE FUNCTION award_badge_on_first_100_answer() RETURNS trigger AS 
+CREATE OR REPLACE FUNCTION award_badge_on_first_100_answer() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
     IF (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) = 100 THEN

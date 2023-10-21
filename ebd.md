@@ -308,7 +308,7 @@ Nas três tabelas abaixo propõem-se os índices a implementar de maneira a melh
 | **Tipo** | Hash |
 | **Cardinalidade** | Média |
 | **Agrupamento** | Não |
-| **Justificação** | A tabela *notification* é muito grande (estima-se que tenha muitas entradas) e atualizada frequentemente, pelo que a importância da existência de um índice é acrescida. Como as consultas são feitas, em princípio, para um dado utilizador e a ordenação necessária é apenas por data (dentro do mesmo utilizador), o índice mais relevante é do tipo hash. Não se propõe agrupamento da tabela devido à estimativa elevada para a sua frequência de crescimento. |
+| **Justificação** | A tabela *notification* é muito grande (estima-se que tenha muitas entradas) e prevê-se que seja atualizada frequentemente, pelo que a importância da existência de um índice é acrescida. Como as consultas são feitas, em princípio, para um dado utilizador e a ordenação necessária é apenas por data (dentro do mesmo utilizador), o índice mais relevante é do tipo hash. Não se propõe agrupamento da tabela devido à estimativa elevada para a sua frequência de crescimento. |
 | **Código SQL** | |
 ```sql
 CREATE INDEX user_notification ON notification USING hash (id_user);
@@ -323,7 +323,7 @@ Tabela 22 - Índice para a Relação *notification*
 | **Tipo** | B-tree |
 | **Cardinalidade** | Média |
 | **Agrupamento** | Sim |
-| **Justificação** | A tabela *question* será relativamente grande, mas a frequência de atualização deve ser baixa. A par disto, as operações de pesquisa e ordenação poderão ser bastante frequentes. Como tal, um índice do tipo b-tree afigura-se o mais apropriado, sobre o atributo *id_community* porque, numa porção significativa dos casos, as consultas são efetuadas a perguntas inseridas numa comunidade. Também por este motivo - e tendo em conta que não se estima que a tabela seja atualizada muito frequentemente (e a cardinalidade é média) -, propõe-se agrupamento das entradas da mesma. |
+| **Justificação** | A tabela *question* será relativamente grande, mas a frequência de atualização deve ser baixa. A par disto, as operações de pesquisa e ordenação poderão ser bastante frequentes. Como tal, um índice do tipo b-tree afigura-se o mais apropriado, sobre o atributo *id_community* porque, numa porção significativa dos casos, as consultas são efetuadas a perguntas inseridas numa comunidade. Também por este motivo - e tendo em conta que não se estima que a tabela seja atualizada muito frequentemente (e a cardinalidade é média) -, propõe-se o agrupamento das entradas da mesma. |
 | **Código SQL** | |
 ```sql
 CREATE INDEX community_question ON question USING btree (id_community);
@@ -339,7 +339,7 @@ Tabela 23 - Índice para a Relação *question*
 | **Tipo** | Hash |
 | **Cardinalidade** | Média |
 | **Agrupamento** | Não |
-| **Justificação** | Estima-se que tabela *question_vote* tenha muitas entradas e cresça com grande frequência. Contudo, esta tabela apenas é relevante para contar o número (e tipo) de votos numa questão, bem como o utilizador que os efetuou (de maneira a impedir votos duplicados). Deste modo, as comparações efetuadas nas consultas à base de dados são apenas de igualdade e não existe necessidade de ordenação, pelo que um índice do tipo hash é o mais adequado. Para além de não funcionar com índices deste tipo, não é interessante fazer agrupamento dos dados dado que a tabela é atualizada frequentemente, com novos votos. |
+| **Justificação** | Estima-se que tabela *question_vote* tenha muitas entradas e cresça com grande frequência. Contudo, esta tabela apenas é relevante para contar o número (e tipo) de votos numa questão, bem como o utilizador que os efetuou (de maneira a impedir votos duplicados). Deste modo, as comparações efetuadas nas consultas à base de dados são apenas de igualdade e não existe necessidade de ordenação, pelo que um índice do tipo hash é o mais adequado. Para além de não funcionar com índices deste tipo, não é interessante fazer agrupamento dos dados visto que a tabela é atualizada frequentemente, com novos votos. |
 | **Código SQL** | |
 ```sql
 CREATE INDEX question_question_vote ON question_vote USING hash (id_question);
@@ -397,7 +397,7 @@ CREATE TRIGGER question_search_update
 CREATE INDEX question_search_idx ON question USING GIN (tsvectors);
 ```
 
-Tabela 26 - Índice para *Full-Text Search* sobre a Relação *question*
+Tabela 25 - Índice para *Full-Text Search* sobre a Relação *question*
 
 | **Índice** | IDX12 |
 | ---------- | ----- |
@@ -437,7 +437,7 @@ CREATE TRIGGER answer_search_update
 CREATE INDEX answer_search_idx ON answer USING GIN (tsvectors);
 ```
 
-Tabela 27 - Índice para *Full-Text Search* sobre a Relação *answer*
+Tabela 26 - Índice para *Full-Text Search* sobre a Relação *answer*
 
 | **Índice** | IDX13 |
 | ---------- | ----- |
@@ -477,7 +477,7 @@ CREATE TRIGGER question_comment_search_update
 CREATE INDEX question_comment_search_idx ON question_comment USING GIN (tsvectors);
 ```
 
-Tabela 28 - Índice para *Full-Text Search* sobre a Relação *question_comment*
+Tabela 27 - Índice para *Full-Text Search* sobre a Relação *question_comment*
 
 | **Índice** | IDX14 |
 | ---------- | ----- |
@@ -517,21 +517,19 @@ CREATE TRIGGER answer_comment_search_update
 CREATE INDEX answer_comment_search_idx ON answer_comment USING GIN (tsvectors);
 ```
 
-Tabela 29 - Índice para *Full-Text Search* sobre a Relação *answer_comment*
+Tabela 28 - Índice para *Full-Text Search* sobre a Relação *answer_comment*
 
-Note-se que as funções ```answer_search_update()```, ```question_comment_search_update()``` e ```answer_comment_search_update()```, presentes nos últimos índices (IDX12, IDX13 e IDX14) - têm o corpo comum, isto é, são constituídas pelas mesmas instruções, dado que uma coluna de nome *content* está presente nas três relações (*answer*, *question_comment* e *answer_comment*, respetivamente) sobre as quais efetuar *full-text search*. Por este motivo, no *script* SQL de criação da base de dados, só se definirá a função uma vez - com o nome ```content_search_update()``` - e os gatilhos serão adaptados para chamar a função apropriada. Aqui, a função foi apresentada de forma triplicada para simplicidade na leitura/análise de cada bloco de código SQL.
+Note-se que as funções ```answer_search_update()```, ```question_comment_search_update()``` e ```answer_comment_search_update()```, presentes nos últimos três índices (IDX12, IDX13 e IDX14) - têm o corpo comum, isto é, são constituídas pelas mesmas instruções, dado que uma coluna de nome *content* está presente nas três relações (*answer*, *question_comment* e *answer_comment*, respetivamente) sobre as quais efetuar *full-text search*. Por este motivo, no *script* SQL de criação da base de dados, só se definirá a função uma vez - com o nome ```content_search_update()``` - e os gatilhos serão adaptados para chamar a função apropriada. Aqui, a função foi apresentada de forma triplicada para simplicidade na leitura/análise de cada bloco de código SQL.
 
 
 ### 3. Gatilhos
- 
-Os triggers desempenham um papel crucial na automatização de processos e na manutenção da integridade dos dados em sistemas de gestão de base de dados, garantindo a execução de ações específicas em resposta a eventos predefinidos.
 
+Os gatilhos desempenham um papel crucial na automatização de processos e na manutenção da integridade dos dados em sistemas de gestão de base de dados, garantindo a execução de determinadas ações em resposta a eventos específicos.
 
-| **Trigger**      | TRIGGER01                              |
-| ---              | ---                                    |
-| **Descrição**  | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa pergunta da qual é autor - **BR01** |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER01 |
+| ----------- | --------- |
+| **Descrição** | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa pergunta (*Question*) da qual é autor - **BR01** |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION prevent_self_vote_on_question() RETURNS TRIGGER AS
 $BODY$
@@ -550,13 +548,12 @@ CREATE TRIGGER prevent_self_vote_on_question
     EXECUTE PROCEDURE prevent_self_vote_on_question();
 ```
 
-Tabela 30 - Gatilho para verificar *votos* numa *pergunta*
+Tabela 29 - Gatilho para impedir voto do autor nas perguntas
 
-| **Trigger**      | TRIGGER02                              |
-| ---              | ---                                    |
-| **Descrição**  | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa resposta da qual é autor - **BR01** |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER02 |
+| ----------- | --------- |
+| **Descrição** | Nenhum utilizador autenticado (*User*) pode votar (*Vote*) numa resposta (*Answer*) da qual é autor - **BR01** |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION prevent_self_vote_on_answer() RETURNS TRIGGER AS
 $BODY$
@@ -575,13 +572,12 @@ CREATE TRIGGER prevent_self_vote_on_answer
     EXECUTE PROCEDURE prevent_self_vote_on_answer();
 ```
 
-Tabela 31 - Gatilho para verificar *votos* numa *resposta*
+Tabela 30 - Gatilho para impedir voto do autor nas respostas
 
-| **Trigger**      | TRIGGER03                            |
-| ---              | ---                                    |
-| **Descrição**  | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo - **BR02** |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER03 |
+| ----------- | --------- |
+| **Descrição** | Se um utilizador autenticado (*User*) for apagado, o conteúdo do qual é autor mantém-se na base de dados com um autor anónimo - **BR02** |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION update_content_on_user_deletion() RETURNS TRIGGER AS
 $BODY$
@@ -598,13 +594,12 @@ CREATE TRIGGER update_content_on_user_deletion
     EXECUTE PROCEDURE update_content_on_user_deletion();
 ```
 
-Tabela 32 - Gatilho para *utilizadores apagados*
+Tabela 31 - Gatilho para anonimizar utilizadores apagados
 
-| **Trigger**      | TRIGGER04                              |
-| ---              | ---                                    |
-| **Descrição**  | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade - **BR03** |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER04 |
+| ----------- | --------- |
+| **Descrição** | O *rating* de um utilizador autenticado (*User*) numa comunidade (*Community*) é calculado de acordo com a fórmula 1000 x likes/(likes + dislikes) nas suas respostas (*Answer*) dentro dessa comunidade - **BR03** |
+| **Código SQL** | |
 ```sql	
 CREATE FUNCTION calculate_user_rating() RETURNS TRIGGER AS
 $BODY$
@@ -653,13 +648,12 @@ CREATE TRIGGER calculate_user_rating
     EXECUTE PROCEDURE calculate_user_rating();
 ```
 
-Tabela 33 - Gatilho para calcular *rating*
+Tabela 32 - Gatilho para calcular *rating*
 
-| **Trigger**      | TRIGGER05                              |
-| ---              | ---                                    |
-| **Descrição**  | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 - **BR04** |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER05 |
+| ----------- | --------- |
+| **Descrição** | Um utilizador autenticado (*User*) é *expert* de uma comunidade (*Community*) se e só se tiver todos os emblemas (*Badge*) possíveis e um *rating* superior a 800 - **BR04** |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION check_expert_status() RETURNS TRIGGER AS
 $BODY$
@@ -686,13 +680,12 @@ CREATE TRIGGER check_expert_status
     EXECUTE PROCEDURE check_expert_status();
 ```
 
-Tabela 34 - Gatilho para verificar *experts*
+Tabela 33 - Gatilho para verificar título de *expert*
 
-| **Trigger**      | TRIGGER06                              |
-| ---              | ---                                    |
-| **Descrição**  | Os ficheiros (*file*) das perguntas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR05** |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER06 |
+| ----------- | --------- |
+| **Descrição** | Os ficheiros (*file*) das perguntas (*Question*) devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR05** |
+| **Código SQL** | |
 ```sql	
 CREATE FUNCTION check_file_extension() RETURNS TRIGGER AS
 $BODY$
@@ -716,13 +709,12 @@ CREATE TRIGGER check_file_extension_on_question
     EXECUTE PROCEDURE check_file_extension();
 ```
 
-Tabela 35 - Gatilho para verificar *extensões de ficheiros* nas *perguntas*
+Tabela 34 - Gatilho para verificar extensão do ficheiro nas perguntas
 
-| **Trigger**      | TRIGGER07                              |
-| ---              | ---                                    |
-| **Descrição**  | Os ficheiros (*file*) das respostas devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR05** |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER07 |
+| ----------- | --------- |
+| **Descrição** | Os ficheiros (*file*) das respostas (*Answer*) devem ter uma das seguintes extensões (ou seja, terminar em) *jpg*, *jpeg*, *png*, *txt*, *pdf*, *doc* - **BR05** |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION check_file_extension() RETURNS TRIGGER AS
 $BODY$
@@ -746,13 +738,12 @@ CREATE TRIGGER check_file_extension_on_answer
     EXECUTE PROCEDURE check_file_extension();
 ```
 
-Tabela 36 - Gatilho para verificar *extensões de ficheiros* nas *respostas*
+Tabela 35 - Gatilho para verificar extensão do ficheiro nas respostas
 
-| **Trigger**      | TRIGGER08                              |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada pergunta uma vez - **BR06** |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER08 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada pergunta (*Question*) uma vez - **BR06** |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION check_question_vote() RETURNS TRIGGER AS
 $BODY$
@@ -771,13 +762,12 @@ CREATE TRIGGER check_question_vote
     EXECUTE PROCEDURE check_question_vote();
 ```
 
-Tabela 37 - Gatilho para verificar *votação única* nas *perguntas*
+Tabela 36 - Gatilho para verificar voto único nas perguntas
 
-| **Trigger**      | TRIGGER09                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada resposta uma vez - **BR06** |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER09 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) só pode votar (*Vote*) em cada resposta uma vez - **BR06** |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION check_answer_vote() RETURNS TRIGGER AS
 $BODY$
@@ -796,13 +786,12 @@ CREATE TRIGGER check_answer_vote
     EXECUTE PROCEDURE check_answer_vote();
 ```
 
-Tabela 38 - Gatilho para verificar *votação única* nas *respostas*
+Tabela 37 - Gatilho para verificar voto único nas respostas
 
-| **Trigger**      | TRIGGER10                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de respostas às próprias perguntas |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER10 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber notificações (*Notification*) de respostas (*Answer*) às próprias perguntas (*Question*) |
+| **Código SQL** | |
 ```sql	
 CREATE FUNCTION new_answer_notification() RETURNS TRIGGER AS
 $BODY$
@@ -828,15 +817,14 @@ CREATE TRIGGER new_answer_notification
     EXECUTE PROCEDURE new_answer_notification();
 ```
 
-Tabela 39 - Gatilho para verificar *notificação de resposta* nas *próprias perguntas*
+Tabela 38 - Gatilho para enviar notificações de respostas às próprias perguntas
 
-| **Trigger**      | TRIGGER11                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de votos às próprias perguntas |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER11 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber notificações (*Notification*) de votos (*Vote*) nas próprias perguntas (*Question*) |
+| **Código SQL** | |
 ```sql
-CREATE FUNCTION new_vote_notification() RETURNS TRIGGER AS
+CREATE FUNCTION new_question_vote_notification() RETURNS TRIGGER AS
 $BODY$
 DECLARE
     author INTEGER;
@@ -854,19 +842,49 @@ END
 $BODY$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER new_vote_notification
+CREATE TRIGGER new_question_vote_notification
     AFTER INSERT ON question_vote
     FOR EACH ROW
-    EXECUTE PROCEDURE new_vote_notification();
+    EXECUTE PROCEDURE new_question_vote_notification();
 ```
 
-Tabela 40 - Gatilho para verificar *notificação de votos* nas *próprias perguntas*
+Tabela 39 - Gatilho para enviar notificações de votos nas próprias perguntas
 
-| **Trigger**      | TRIGGER12                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias perguntas |
-| `SQL code`       |                                        |
+| **Trigger** | TRIGGER12 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber notificações (*Notification*) de votos (*Vote*) nas próprias respostas (*Answer*) |
+| **Código SQL** | |
+```sql
+CREATE FUNCTION new_answer_vote_notification() RETURNS TRIGGER AS
+$BODY$
+DECLARE
+    author INTEGER;
+    q_title VARCHAR(255);
+BEGIN
+    SELECT id_user, title INTO author, q_title
+    FROM answer JOIN question ON answer.id_question = question.id
+    WHERE id = NEW.id_answer;
 
+    INSERT INTO notification (content, date, read, id_user)
+    VALUES (CONCAT('You received a new vote on your answer to the question: ', q_title, '!'), CURRENT_DATE, FALSE, author);
+
+    RETURN NEW;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER new_answer_vote_notification
+    AFTER INSERT ON answer_vote
+    FOR EACH ROW
+    EXECUTE PROCEDURE new_answer_vote_notification();
+```
+
+Tabela 40 - Gatilho para enviar notificações de votos nas próprias respostas
+
+| **Trigger** | TRIGGER13 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber notificações (*Notification*) de comentários (*Comment*) às próprias perguntas (*Question*) |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION new_question_comment_notification() RETURNS TRIGGER AS
 $BODY$
@@ -892,13 +910,12 @@ CREATE TRIGGER new_question_comment_notification
     EXECUTE PROCEDURE new_question_comment_notification();
 ```
 
-Tabela 41 - Gatilho para verificar *notificação de comentários* nas *próprias perguntas*
+Tabela 41 - Gatilho para enviar notificações de comentários às próprias perguntas
 
-| **Trigger**      | TRIGGER13                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de comentários às próprias respostas |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER14 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber notificações (*Notification*) de comentários (*Comment*) às próprias respostas (*Answer*) |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION new_answer_comment_notification() RETURNS TRIGGER AS
 $BODY$
@@ -924,13 +941,12 @@ CREATE TRIGGER new_answer_comment_notification
     EXECUTE PROCEDURE new_answer_comment_notification();
 ```
 
-Tabela 42 - Gatilho para verificar *notificação de comentários* nas *próprias respostas*
+Tabela 42 - Gatilho para enviar notificações de comentários às próprias respostas
 
-| **Trigger**      | TRIGGER14                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber notificações de atribuição de emblemas |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER15 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber notificações (*Notification*) de atribuição de emblemas (*Badge*) |
+| **Código SQL** | |
 ```sql
 CREATE FUNCTION new_badge_notification() RETURNS TRIGGER AS
 $BODY$
@@ -956,18 +972,17 @@ CREATE TRIGGER new_badge_notification
     EXECUTE PROCEDURE new_badge_notification();
 ```
 
-Tabela 43 - Gatilho para verificar a *atribuição de emblemas*
+Tabela 43 - Gatilho para enviar notificações de atribuição de emblemas
 
-| **Trigger**      | TRIGGER15                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema da primeira pergunta realizada |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER16 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber o emblema (*Badge*) da primeira pergunta (*Question*) realizada |
+| **Código SQL** | |
 ```sql
-CREATE FUNCTION award_badge_on_first_question() RETURNS trigger AS 
+CREATE FUNCTION award_badge_on_first_question() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF EXISTS (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) THEN
+    IF (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 1 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 1);
     END IF;
     RETURN NEW;
@@ -981,18 +996,17 @@ CREATE TRIGGER award_badge_on_first_question
     EXECUTE PROCEDURE award_badge_on_first_question();
 ```
 
-Tabela 44 - Gatilho para verificar a atribuição do *emblema da primeira pergunta*
+Tabela 44 - Gatilho para atribuir o emblema da primeira pergunta
 
-| **Trigger**      | TRIGGER16                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema da primeira resposta realizada |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER17 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber o emblema (*Badge*) da primeira resposta (*Answer*) realizada |
+| **Código SQL** | |
 ```sql
-CREATE FUNCTION award_badge_on_first_answer() RETURNS trigger AS 
+CREATE FUNCTION award_badge_on_first_answer() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF EXISTS (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) THEN
+    IF (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) = 1 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 2);
     END IF;
     RETURN NEW;
@@ -1006,18 +1020,17 @@ CREATE TRIGGER award_badge_on_first_answer
     EXECUTE PROCEDURE award_badge_on_first_answer();
 ```
 
-Tabela 45 - Gatilho para verificar a atribuição do *emblema da primeira resposta*
+Tabela 45 - Gatilho para atribuir o emblema da primeira resposta
 
-| **Trigger**      | TRIGGER17                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema do primeiro comentário numa pergunta realizado |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER18 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber o emblema (*Badge*) do primeiro comentário (*Comment*) realizado numa pergunta (*Question*) |
+| **Código SQL** | |
 ```sql
-CREATE FUNCTION award_badge_on_first_comment_question() RETURNS trigger AS 
+CREATE FUNCTION award_badge_on_first_comment_question() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF EXISTS (SELECT COUNT(*) FROM question_comment WHERE id_user = NEW.id_user) THEN
+    IF (SELECT COUNT(*) FROM question_comment WHERE id_user = NEW.id_user) = 1 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 3);
     END IF;
     RETURN NEW;
@@ -1031,18 +1044,17 @@ CREATE TRIGGER award_badge_on_first_comment_question
     EXECUTE PROCEDURE award_badge_on_first_comment_question();
 ```
 
-Tabela 46 - Gatilho para verificar a atribuição do *emblema do primeiro comentário numa pergunta*
+Tabela 46 - Gatilho para atribuir o emblema do primeiro comentário numa pergunta
 
-| **Trigger**      | TRIGGER18                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema do primeiro comentário numa resposta realizado |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER19 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber o emblema (*Badge*) do primeiro comentário (*Comment*) realizado numa resposta (*Answer*) |
+| **Código SQL** | |
 ```sql
-CREATE FUNCTION award_badge_on_first_comment_answer() RETURNS trigger AS 
+CREATE FUNCTION award_badge_on_first_comment_answer() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF EXISTS (SELECT COUNT(*) FROM answer_comment WHERE id_user = NEW.id_user) THEN
+    IF (SELECT COUNT(*) FROM answer_comment WHERE id_user = NEW.id_user) = 1 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 4);
     END IF;
     RETURN NEW;
@@ -1056,18 +1068,17 @@ CREATE TRIGGER award_badge_on_first_comment_answer
     EXECUTE PROCEDURE award_badge_on_first_comment_answer();
 ```
 
-Tabela 47 - Gatilho para verificar a atribuição do *emblema do primeiro comentário numa resposta*
+Tabela 47 - Gatilho para atribuir o emblema do primeiro comentário numa resposta
 
-| **Trigger**      | TRIGGER19                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema das primeira 100 perguntas realizadas |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER20 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber o emblema (*Badge*) das primeira 100 perguntas (*Question*) realizadas |
+| **Código SQL** | |
 ```sql
-CREATE FUNCTION award_badge_on_first_100_question() RETURNS trigger AS 
+CREATE FUNCTION award_badge_on_first_100_question() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
-    IF(SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 100 THEN
+    IF (SELECT COUNT(*) FROM question WHERE id_user = NEW.id_user) = 100 THEN
         INSERT INTO user_earns_badge (id_user, id_badge) VALUES (NEW.id_user, 5);
     END IF;
     RETURN NEW;
@@ -1081,15 +1092,14 @@ CREATE TRIGGER award_badge_on_first_100_question
     EXECUTE PROCEDURE award_badge_on_first_100_question();
 ```
 
-Tabela 48 - Gatilho para verificar a atribuição do *emblema das primeiras 100 perguntas*
+Tabela 48 - Gatilho para atribuir o emblema das primeiras 100 perguntas
 
-| **Trigger**      | TRIGGER20                             |
-| ---              | ---                                    |
-| **Descrição**  | Cada utilizador autenticado (*User*) deve receber o emblema das primeiras 100 respostas realizadas |
-| `SQL code`       |                                        |
-
+| **Trigger** | TRIGGER21 |
+| ----------- | --------- |
+| **Descrição** | Cada utilizador autenticado (*User*) deve receber o emblema (*Badge*) das primeiras 100 respostas (*Answer*) realizadas |
+| **Código SQL** | |
 ```sql
-CREATE FUNCTION award_badge_on_first_100_answer() RETURNS trigger AS 
+CREATE FUNCTION award_badge_on_first_100_answer() RETURNS TRIGGER AS 
 $BODY$
 BEGIN
     IF (SELECT COUNT(*) FROM answer WHERE id_user = NEW.id_user) = 100 THEN
@@ -1106,7 +1116,9 @@ CREATE TRIGGER award_badge_on_first_100_answer
     EXECUTE PROCEDURE award_badge_on_first_100_answer();
 ```
 
-Tabela 49 - Gatilho para verificar a atribuição do *emblema das primeiras 100 respostas*
+Tabela 49 - Gatilho para atribuir o emblema das primeiras 100 respostas
+
+Note-se que a função ```check_file_extension()``` é comum aos *triggers* TRIGGER06 e TRIGGER07, dado que uma coluna de nome ```file``` está presente nas duas relações (*question* e *answer*, respetivamente) sobre as quais o *trigger* deve atuar. Por este motivo, no *script* SQL de criação da base de dados, só se definirá a função uma vez. Aqui, a função foi apresentada de forma duplicada para simplicidade na leitura/análise de cada bloco de código SQL.
 
 
 ### 4. Transações
