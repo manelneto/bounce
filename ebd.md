@@ -4,7 +4,7 @@ O ***Community Connect*** é um sistema de informação web-based que permite ao
 
 ## A4: Modelo Conceptual de Dados
 
-O modelo conceptual de dados, constituído pelo diagrama UML de classes e pelas regras de negócio, procura elencar e caracterizar os elementos significativos do sistema (classes) e a forma como eles se relacionam entre si (associações). Este modelo é o ponto de partida para o esquema relacional da base de dados.
+O modelo conceptual de dados - constituído pelo diagrama UML de classes e pelas regras de negócio - procura elencar e caracterizar os elementos significativos do sistema (classes) e a forma como eles se relacionam entre si (associações). Este modelo é o ponto de partida para o esquema relacional da base de dados.
 
 
 ### 1. Diagrama de Classes
@@ -37,7 +37,7 @@ Tabela 1 - Regras de Negócio Adicionais
 
 ## A5: Esquema Relacional, Validação e Afinação
 
-O esquema relacional, convertido a partir do modelo conceptual, mapeia as classes e associações em relações/tabelas, bem como os respetivos atributos e restrições. Quando devidamente validado e afinado, o esquema relacional garante a minimização/eliminação de anomalias, quer de redundância, quer de atualização/eliminação.
+O esquema relacional - convertido a partir do modelo conceptual - mapeia as classes e associações em relações/tabelas, bem como os respetivos atributos e restrições. Quando devidamente validado e afinado, o esquema relacional garante a minimização/eliminação de anomalias, quer de redundância, quer de atualização/eliminação.
 
 
 ### 1. Esquema Relacional
@@ -46,8 +46,8 @@ O esquema relacional do ***Community Connect*** encontra-se, em notação compac
 
 | Referência da Relação | Notação Compacta da Relação |
 | --------------------- | --------------------------- |
-| R01 | user(<ins>id</ins>, username **NN** **UK**, email **NN** **UK**, password **NN**, register_date **NN** **CK** register_date <= Today, administrator **NN** **DF** false, blocked **NN** **DF** false, image) |
-| R02 | notification(<ins>id</ins>, content **NN**, date **NN** **CK** date <= Today, read **NN** **DF** false, id_user → user **NN**) |
+| R01 | user(<ins>id</ins>, username **NN** **UK**, email **NN** **UK**, password **NN**, register_date **NN** **DF** Today, administrator **NN** **DF** false, blocked **NN** **DF** false, image) |
+| R02 | notification(<ins>id</ins>, content **NN**, date **NN** **DF** Today, read **NN** **DF** false, id_user → user **NN**) |
 | R03 | badge(<ins>id</ins>, name **NN** **UK**) |
 | R04 | user_earns_badge(<ins>id_user → user</ins>, <ins>id_badge → badge</ins>) |
 | R05 | tag(<ins>id</ins>, name **NN** **UK**) |
@@ -56,14 +56,14 @@ O esquema relacional do ***Community Connect*** encontra-se, em notação compac
 | R08 | user_follows_community(<ins>id_user → user</ins>, <ins>id_community → community</ins>) |
 | R09 | user_moderates_community(<ins>id_user → user</ins>, <ins>id_community → community</ins>) |
 | R10 | reputation(<ins>id_user → user</ins>, <ins>id_community → community</ins>, rating **NN** **DF** 0 **CK** rating >= 0, expert **NN** **DF** false) |
-| R11 | question(<ins>id</ins>, content **NN**, date **NN** **CK** date <= Today, file, last_edited **CK** last_edited <= Today AND last_edited >= date, title **NN**, id_user → user **NN**, id_community → community **NN**) |
+| R11 | question(<ins>id</ins>, content **NN**, date **NN** **DF** Today, file, last_edited **CK** last_edited >= date, title **NN**, id_user → user **NN**, id_community → community **NN**) |
 | R12 | user_follows_question(<ins>id_user → user</ins>, <ins>id_question → question</ins>) |
 | R13 | question_tags(<ins>id_question → question</ins>, <ins>id_tag → tag</ins>) |
 | R14 | question_vote(<ins>id_question → question</ins>, <ins>id_user → user</ins>, like **NN**) |
-| R15 | question_comment(<ins>id</ins>, content **NN**, date **NN** **CK** date <= Today, last_edited **CK** last_edited <= Today AND last_edited >= date, id_user → user **NN**, id_question → question **NN**) |
-| R16 | answer(<ins>id</ins>, content **NN**, date **NN** **CK** date <= Today, file, last_edited **CK** last_edited <= Today AND last_edited >= date, correct **NN** **DF** false, id_user → user **NN**, id_question → question **NN**) |
+| R15 | question_comment(<ins>id</ins>, content **NN**, date **NN** **DF** Today, last_edited **CK** last_edited >= date, id_user → user **NN**, id_question → question **NN**) |
+| R16 | answer(<ins>id</ins>, content **NN**, date **NN** **DF** Today, file, last_edited **CK** last_edited >= date, correct **NN** **DF** false, id_user → user **NN**, id_question → question **NN**) |
 | R17 | answer_vote(<ins>id_answer → answer</ins>, <ins>id_user → user</ins>, like **NN**) |
-| R18 | answer_comment(<ins>id</ins>, content **NN**, date **NN** **CK** date <= Today, last_edited **CK** last_edited <= Today AND last_edited >= date, id_user → user **NN**, id_answer → answer **NN**) |
+| R18 | answer_comment(<ins>id</ins>, content **NN**, date **NN** **DF** Today, last_edited **CK** last_edited >= date, id_user → user **NN**, id_answer → answer **NN**) |
 
 Tabela 2 - Esquema Relacional
 
@@ -73,16 +73,15 @@ Legenda:
 - DF = DEFAULT
 - CK = CHECK
 
-A generalização das classes *Question* e *Answer* em *Post*, isto é, a especialização da classe *Post* em *Question* e *Answer*, foi convertida do modelo conceptual para o esquema relacional segundo uma abordagem orientada a objetos. De acordo com Jeffrey Ullman e Jennifer Widom em *A first course in Database Systems 3<sup>rd</sup> Edition* (Secção 4.8.2) e com https://www.cs.uct.ac.za/mit_notes/database/htmls/chp07.html, este método é o que mais se adequada a generalizações disjuntas e completas - como é o caso. Tal deve-se, principalmente, ao facto de, sendo a generalização disjunta e completa, o número de relações a serem criadas ser exatamente o número de subclasses, dado que nenhum elemento pode pertencer às duas subclasses em simultâneo (a generalização não seria disjunta) ou apenas à superclasse (a generalização não seria completa). Esta abordagem permite minimizar o espaço ocupado (evita-se a tabela para a superclasse) e facilita futuras consultas à base de dados, minimizando o número de junções necessárias para obter informação, em comparação com uma abordagem de mapeamento Entidade-Relação.
+A generalização das classes *Question* e *Answer* em *Post*, isto é, a especialização da classe *Post* em *Question* e *Answer*, foi convertida do modelo conceptual para o esquema relacional segundo uma abordagem orientada a objetos. De acordo com Jeffrey Ullman e Jennifer Widom em *A first course in Database Systems 3<sup>rd</sup> Edition* (Secção 4.8.2) e com https://www.cs.uct.ac.za/mit_notes/database/htmls/chp07.html, este método é o que mais se adequada a generalizações disjuntas e completas - como é o caso. Tal deve-se, principalmente, ao facto de - sendo a generalização disjunta e completa - o número de relações a serem criadas ser exatamente o número de subclasses, dado que nenhum elemento pode pertencer às duas subclasses em simultâneo (a generalização não seria disjunta) ou apenas à superclasse (a generalização não seria completa). Esta abordagem permite minimizar o espaço ocupado (evita-se a tabela para a superclasse) e facilita futuras consultas à base de dados, minimizando o número de junções necessárias para obter informação, em comparação com uma abordagem de mapeamento Entidade-Relação.
 
 
 ### 2. Domínios
 
-
 Na Tabela 3, especifica-se o único domínio adicional.
 
 | Nome do Domínio | Especificação do Domínio |
-| ----------- | ---------------------------- |
+| --------------- | ------------------------ |
 | Today	| DATE DEFAULT CURRENT_DATE |
 
 Tabela 3 - Domínio Adicional
@@ -90,167 +89,166 @@ Tabela 3 - Domínio Adicional
 
 ### 3. Validação do Esquema
 
-
 A validação do esquema relacional é essencial para minimizar/eliminar anomalias de redundância e de atualização/eliminação. Nesse sentido, nas tabelas abaixo apresentam-se as dependências funcionais de todas as relações e a respetiva relação normalizada (na verdade, em todos os casos, a própria relação já está normalizada).
 
-| **TABELA R01** | user |
+| **Tabela R01** | user |
 | -------------- | ---- |
-| **Chaves** | {id}, {username}, {email}  |
+| **Chaves** | {id}, {username}, {email} |
 | **Dependências Funcionais** |
 | FD0101 | {id} → {username, email, password, register_date, administrator, blocked, image} |
 | FD0102 | {username} → {id, email, password, register_date, administrator, blocked, image} |
 | FD0103 | {email} → {id, username, password, register_date, administrator, blocked, image} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 4 - Validação da Relação *user*
 
-| **TABELA R02** | notification |
+| **Tabela R02** | notification |
 | -------------- | ------------ |
 | **Chaves** | {id} |
 | **Dependências Funcionais** |
 | FD0201 | {id} → {content, date, read, id_user} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 5 - Validação da Relação *notification*
 
-| **TABELA R03** | badge |
+| **Tabela R03** | badge |
 | -------------- | ----- |
 | **Chaves** | {id}, {name} |
 | **Dependências Funcionais** |
 | FD0301 | {id} → {name} |
 | FD0302 | {name} → {id} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 6 - Validação da Relação *badge*
 
-| **TABELA R04** | user_earns_badge |
+| **Tabela R04** | user_earns_badge |
 | -------------- | ---------------- |
 | **Chaves** | {id_user, id_badge} |
 | **Dependências Funcionais** | *nenhuma* |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 7 - Validação da Relação *user_earns_badge*
 
-| **TABELA R05** | tag |
+| **Tabela R05** | tag |
 | -------------- | --- |
 | **Chaves** | {id}, {name} |
 | **Dependências Funcionais** |
 | FD0501 | {id} → {name} |
 | FD0502 | {name} → {id} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 8 - Validação da Relação *tag*
 
-| **TABELA R06** | user_follows_tag |
+| **Tabela R06** | user_follows_tag |
 | -------------- | ---------------- |
 | **Chaves** | {id_user, id_tag} |
 | **Dependências Funcionais** | *nenhuma* |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 9 - Validação da Relação *user_follows_tag*
 
-| **TABELA R07** | community |
+| **Tabela R07** | community |
 | -------------- | --------- |
 | **Chaves** | {id}, {name} |
 | **Dependências Funcionais** |
 | FD0701 | {id} → {name} |
 | FD0702 | {name} → {id} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 10 - Validação da Relação *community*
 
-| **TABELA R08** | user_follows_community |
+| **Tabela R08** | user_follows_community |
 | -------------- | ---------------------- |
 | **Chaves** | {id_user, id_community} |
 | **Dependências Funcionais** | *nenhuma* |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 11 - Validação da Relação *user_follows_community*
 
-| **TABELA R09** | user_moderates_community |
+| **Tabela R09** | user_moderates_community |
 | -------------- | ------------------------ |
 | **Chaves** | {id_user, id_commmunity} |
 | **Dependências Funcionais** | *nenhuma* |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 12 - Validação da Relação *user_moderates_community*
 
-| **TABELA R10** | reputation |
+| **Tabela R10** | reputation |
 | -------------- | ---------- |
 | **Chaves** | {id_user, id_community} |
 | **Dependências Funcionais** |
 | FD1001 | {id_user, id_community} → {rating, expert} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 13 - Validação da Relação *reputation*
 
-| **TABELA R11** | question |
+| **Tabela R11** | question |
 | -------------- | -------- |
 | **Chaves** | {id} |
 | **Dependências Funcionais** |
 | FD1101 | {id} → {content, date, file, last_edited, title, id_user, id_community} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 14 - Validação da Relação *question*
 
-| **TABELA R12** | user_follows_question |
+| **Tabela R12** | user_follows_question |
 | -------------- | --------------------- |
 | **Chaves** | {id_user, id_question} |
 | **Dependências Funcionais** | *nenhuma* |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 15 - Validação da Relação *user_follows_question*
 
-| **TABELA R13** | question_tags |
+| **Tabela R13** | question_tags |
 | -------------- | ------------- |
 | **Chaves** | {id_question, id_tag} |
 | **Dependências Funcionais** | *nenhuma* |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 16 - Validação da Relação *question_tags*
 
-| **TABELA R14** | question_vote |
+| **Tabela R14** | question_vote |
 | -------------- | ------------- |
 | **Chaves** | {id_question, id_user} |
 | **Dependências Funcionais** |
 | FD1401 | {id_question, id_user} → {like} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 17 - Validação da Relação *question_vote*
 
-| **TABELA R15** | question_comment |
+| **Tabela R15** | question_comment |
 | -------------- | ---------------- |
 | **Chaves** | {id} |
 | **Dependências Funcionais** |
-| FD1501 | {id} → {content, date, last_edited, correct, id_user, id_question} |
-| **FORMA NORMAL** | BCNF |
+| FD1501 | {id} → {content, date, last_edited, id_user, id_question} |
+| **Forma Normal** | BCNF |
 
 Tabela 18 - Validação da Relação *question_comment*
 
-| **TABELA R16** | answer |
+| **Tabela R16** | answer |
 | -------------- | ------ |
 | **Chaves** | {id} |
 | **Dependências Funcionais** |
 | FD1601 | {id} → {content, date, file, last_edited, correct, id_user, id_question} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 19 - Validação da Relação *answer*
 
-| **TABELA R17** | answer_vote |
+| **Tabela R17** | answer_vote |
 | -------------- | ----------- |
 | **Chaves** | {id_answer, id_user} |
 | **Dependências Funcionais** |
 | FD1701 | {id_answer, id_user} → {like} |
-| **FORMA NORMAL** | BCNF |
+| **Forma Normal** | BCNF |
 
 Tabela 20 - Validação da Relação *answer_vote*
 
-| **TABELA R18** | answer_comment |
+| **Tabela R18** | answer_comment |
 | -------------- | -------------- |
 | **Chaves** | {id} |
 | **Dependências Funcionais** |
-| FD1801 | {id} → {content, date, last_edited, correct, id_user, id_answer} |
-| **FORMA NORMAL** | BCNF |
+| FD1801 | {id} → {content, date, last_edited, id_user, id_answer} |
+| **Forma Normal** | BCNF |
 
 Tabela 21 - Validação da Relação *answer_comment*
 
@@ -270,7 +268,6 @@ Este artefacto engloba a carga de trabalho da base de dados, a especificação d
 
 
 ### 1. Carga de Trabalho da Base de Dados
-
 
 O esquema físico da base de dados inclui - na tabela abaixo - uma análise da carga estimada do sistema, nomeadamente através de uma previsão do número aproximado de linhas em cada tabela e do seu crescimento esperado, sendo essencial compreender a ordem de grandeza e o crescimento das relações de modo a desenvolver uma base de dados sólida e eficiente.
 
@@ -1672,7 +1669,7 @@ Tabela 69 - Transação para marcar uma resposta como correta
 Nada a assinalar.
 
 ***
-GROUP23114, 23/10/2023
+GROUP23114, 22/10/2023
 
 * António Henrique Martins Azevedo, up202108689@up.pt
 * António Marujo Rama, up202108801@up.pt (Editor)
