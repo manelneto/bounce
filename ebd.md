@@ -1594,7 +1594,7 @@ SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 SELECT name
 FROM tag;
 
--- Seguir uma comuniadde
+-- Seguir uma comunidade
 INSERT INTO user_follows_community (id_user, id_community)
 VALUES ($id_user, $id_community);
 
