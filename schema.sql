@@ -195,7 +195,7 @@ CREATE INDEX user_notification ON notification USING hash (id_user);
 CREATE INDEX community_question ON question USING btree (id_community);
 CLUSTER question USING community_question;
 
-CREATE INDEX question_question_vote ON question_vote USING hash (id_question);
+CREATE INDEX question_answer ON answer USING hash (id_question);
 
 
 -- Índices para Full-Text Search

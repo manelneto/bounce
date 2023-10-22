@@ -334,15 +334,15 @@ Tabela 23 - Índice para a Relação *question*
 
 | **Índice** | IDX03 |
 | ---------- | ----- |
-| **Relação** | question_vote |
+| **Relação** | answer |
 | **Atributo** | id_question |
 | **Tipo** | Hash |
 | **Cardinalidade** | Média |
 | **Agrupamento** | Não |
-| **Justificação** | Estima-se que tabela *question_vote* tenha muitas entradas e cresça com grande frequência. Contudo, esta tabela apenas é relevante para contar o número (e tipo) de votos numa questão, bem como o utilizador que os efetuou (de maneira a impedir votos duplicados). Deste modo, as comparações efetuadas nas consultas à base de dados são apenas de igualdade e não existe necessidade de ordenação, pelo que um índice do tipo hash é o mais adequado. Para além de não funcionar com índices deste tipo, não é interessante fazer agrupamento dos dados visto que a tabela é atualizada frequentemente, com novos votos. |
+| **Justificação** | Estima-se que tabela *answer* tenha muitas entradas, mas que não cresça com tão grande frequência. Na maior parte dos casos (excluindo operações de pesquisa sobre respostas), as consultas a esta tabela serão feitas para uma dada pergunta. Deste modo, as comparações efetuadas nas interrogações à base de dados são apenas de igualdade e não existe necessidade de ordenação sobre o atributo comparado, pelo que um índice do tipo hash é o mais adequado. Não é proposto agrupamento dos dados visto que não funciona com índices deste tipo. |
 | **Código SQL** | |
 ```sql
-CREATE INDEX question_question_vote ON question_vote USING hash (id_question);
+CREATE INDEX question_answer ON answer USING hash (id_question);
 ```
 
 Tabela 24 - Índice para a Relação *question_vote*
@@ -1866,7 +1866,7 @@ CREATE INDEX user_notification ON notification USING hash (id_user);
 CREATE INDEX community_question ON question USING btree (id_community);
 CLUSTER question USING community_question;
 
-CREATE INDEX question_question_vote ON question_vote USING hash (id_question);
+CREATE INDEX question_answer ON answer USING hash (id_question);
 
 
 -- Índices para Full-Text Search
