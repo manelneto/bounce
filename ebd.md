@@ -2409,7 +2409,95 @@ As tabelas *notification*, *user_earns_badge* e *reputation* não contêm opera�
 O *script* completo para o povoamento da base de dados encontra-se disponível em LINK.
 
 ```sql
-TODO
+insert into users (username, email, password, register_date, administrator, blocked, image) values ('sforty0', 'tgypson0@google.de', '$2a$04$36Nf1MOnHC9DeTvNZcFYIOHlAyEFjE1ykWImHJY8CkJ6tUu0BSin6', '2022-03-03', false, false, null);
+insert into users (username, email, password, register_date, administrator, blocked, image) values ('moneil1', 'tdriffill1@disqus.com', '$2a$04$pKYj1hTFUAPy/dk9b2FiEeJRhvgM7eXM3qu8bUu1RAfzkmI/ZY0zO', '2022-01-03', false, true, 'http://dummyimage.com/120x180.png/ff4444/ffffff');
+insert into users (username, email, password, register_date, administrator, blocked, image) values ('cburnapp2', 'sdivisek2@elegantthemes.com', '$2a$04$VVnpII1yGpyneWWfnEzzZ.QX4NTV895USJRZQDZHF566D1tgnJc.u', '2022-01-30', false, false, 'http://dummyimage.com/250x219.png/ff4444/ffffff');
+insert into users (username, email, password, register_date, administrator, blocked, image) values ('nfarrears3', 'dbroadberry3@flavors.me', '$2a$04$WR7Z3vKDT5.j4obgyt/.3.9xdVAkva6CvtAqOSueFJsi11VUnXpMu', '2022-02-11', false, true, 'http://dummyimage.com/170x239.png/5fa2dd/ffffff');
+insert into users (username, email, password, register_date, administrator, blocked, image) values ('jaiskovitch4', 'kduignan4@webs.com', '$2a$04$.SFIDdcs4YpQHtjCvM5lP.UJ8yth7XLrQNVRE.rqMYJvAY1Ly3lOK', '2022-03-22', false, false, 'http://dummyimage.com/172x155.png/5fa2dd/ffffff');
+
+insert into badge (name) values ('First Question');
+insert into badge (name) values ('First Answer');
+insert into badge (name) values ('First Comment on Question');
+insert into badge (name) values ('First Comment on Answer');
+insert into badge (name) values ('First 100 Questions');
+
+insert into tag (name) values ('Reduced');
+insert into tag (name) values ('Switchable');
+insert into tag (name) values ('static');
+insert into tag (name) values ('Re-contextualized');
+insert into tag (name) values ('paradigm');
+
+insert into user_follows_tag (id_user, id_tag) values (921, 47);
+insert into user_follows_tag (id_user, id_tag) values (363, 58);
+insert into user_follows_tag (id_user, id_tag) values (226, 42);
+insert into user_follows_tag (id_user, id_tag) values (451, 51);
+insert into user_follows_tag (id_user, id_tag) values (77, 30);
+
+insert into community (name) values ('Research and Development');
+insert into community (name) values ('Legal');
+insert into community (name) values ('Accounting');
+insert into community (name) values ('Training');
+insert into community (name) values ('Sales');
+
+insert into user_follows_community (id_user, id_community) values (694, 9);
+insert into user_follows_community (id_user, id_community) values (473, 13);
+insert into user_follows_community (id_user, id_community) values (890, 17);
+insert into user_follows_community (id_user, id_community) values (502, 12);
+insert into user_follows_community (id_user, id_community) values (586, 17);
+
+insert into user_moderates_community (id_user, id_community) values (947, 1);
+insert into user_moderates_community (id_user, id_community) values (60, 2);
+insert into user_moderates_community (id_user, id_community) values (891, 3);
+insert into user_moderates_community (id_user, id_community) values (831, 4);
+insert into user_moderates_community (id_user, id_community) values (532, 5);
+
+insert into question (content, date, file, last_edited, title, id_user, id_community) values ('Morbi quis tortor id nulla ultrices aliquet. Maecenas leo odio, condimentum id, luctus nec, molestie sed, justo. Pellentesque viverra pede ac diam. Cras pellentesque volutpat dui. Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti. Nullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris.', '2022-05-01', null, null, 'Nam ultrices, libero non mattis pulvinar, nulla pede ullamcorper augue, a suscipit nulla elit ac nulla.', 115, 10);
+insert into question (content, date, file, last_edited, title, id_user, id_community) values ('Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis.', '2022-04-22', null, '2022-05-24', 'Morbi ut odio.', 350, 9);
+insert into question (content, date, file, last_edited, title, id_user, id_community) values ('Pellentesque ultrices mattis odio. Donec vitae nisi. Nam ultrices, libero non mattis pulvinar, nulla pede ullamcorper augue, a suscipit nulla elit ac nulla. Sed vel enim sit amet nunc viverra dapibus. Nulla suscipit ligula in lacus. Curabitur at ipsum ac tellus semper interdum. Mauris ullamcorper purus sit amet nulla. Quisque arcu libero, rutrum ac, lobortis vel, dapibus at, diam. Nam tristique tortor eu pede.', '2022-04-29', null, null, 'Aenean fermentum.', 727, 15);
+insert into question (content, date, file, last_edited, title, id_user, id_community) values ('Vestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis. Duis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis.', '2022-05-02', null, null, 'Nulla suscipit ligula in lacus.', 309, 7);
+insert into question (content, date, file, last_edited, title, id_user, id_community) values ('Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nulla dapibus dolor vel est. Donec odio justo, sollicitudin ut, suscipit a, feugiat et, eros. Vestibulum ac est lacinia nisi venenatis tristique. Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat. In congue. Etiam justo.', '2022-04-16', 'AmetDiam.png', null, 'Suspendisse accumsan tortor quis turpis.', 589, 3);
+
+insert into user_follows_question (id_user, id_question) values (165, 814);
+insert into user_follows_question (id_user, id_question) values (446, 783);
+insert into user_follows_question (id_user, id_question) values (659, 863);
+insert into user_follows_question (id_user, id_question) values (424, 201);
+insert into user_follows_question (id_user, id_question) values (764, 284);
+
+insert into question_tags (id_question, id_tag) values (537, 31);
+insert into question_tags (id_question, id_tag) values (637, 89);
+insert into question_tags (id_question, id_tag) values (976, 23);
+insert into question_tags (id_question, id_tag) values (819, 7);
+insert into question_tags (id_question, id_tag) values (634, 100);
+
+insert into question_vote (id_question, id_user, likes) values (239, 655, false);
+insert into question_vote (id_question, id_user, likes) values (180, 954, true);
+insert into question_vote (id_question, id_user, likes) values (453, 390, true);
+insert into question_vote (id_question, id_user, likes) values (93, 64, false);
+insert into question_vote (id_question, id_user, likes) values (811, 370, true);
+
+insert into question_comment (content, date, last_edited, id_user, id_question) values ('Etiam vel augue. Vestibulum rutrum rutrum neque. Aenean auctor gravida sem.', '2022-08-13', '2022-08-23', 865, 91);
+insert into question_comment (content, date, last_edited, id_user, id_question) values ('Morbi vestibulum, velit id pretium iaculis, diam erat fermentum justo, nec condimentum neque sapien placerat ante. Nulla justo.', '2022-07-10', '2022-08-24', 782, 221);
+insert into question_comment (content, date, last_edited, id_user, id_question) values ('Integer a nibh.', '2022-07-28', '2022-09-23', 827, 603);
+insert into question_comment (content, date, last_edited, id_user, id_question) values ('Cras mi pede, malesuada in, imperdiet et, commodo vulputate, justo. In blandit ultrices enim. Lorem ipsum dolor sit amet, consectetuer adipiscing elit.', '2022-07-16', '2022-09-07', 382, 138);
+insert into question_comment (content, date, last_edited, id_user, id_question) values ('Donec posuere metus vitae ipsum. Aliquam non mauris. Morbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis.', '2022-07-22', null, 426, 148);
+
+insert into answer (content, date, file, last_edited, correct, id_user, id_question) values ('Morbi non quam nec dui luctus rutrum. Nulla tellus. In sagittis dui vel nisl. Duis ac nibh. Fusce lacus purus, aliquet at, feugiat non, pretium quis, lectus. Suspendisse potenti. In eleifend quam a odio. In hac habitasse platea dictumst. Maecenas ut massa quis augue luctus tincidunt. Nulla mollis molestie lorem.', '2022-08-14', null, '2022-09-10', false, 482, 865);
+insert into answer (content, date, file, last_edited, correct, id_user, id_question) values ('Nullam porttitor lacus at turpis. Donec posuere metus vitae ipsum. Aliquam non mauris. Morbi non lectus. Aliquam sit amet diam in magna bibendum imperdiet. Nullam orci pede, venenatis non, sodales sed, tincidunt eu, felis. Fusce posuere felis sed lacus. Morbi sem mauris, laoreet ut, rhoncus aliquet, pulvinar sed, nisl.', '2022-07-12', null, '2022-08-30', false, 471, 76);
+insert into answer (content, date, file, last_edited, correct, id_user, id_question) values ('In est risus, auctor sed, tristique in, tempus sit amet, sem. Fusce consequat. Nulla nisl.', '2022-07-23', 'SapienNon.txt', null, true, 727, 456);
+insert into answer (content, date, file, last_edited, correct, id_user, id_question) values ('Vestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis. Duis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci.', '2022-07-30', null, null, false, 594, 886);
+insert into answer (content, date, file, last_edited, correct, id_user, id_question) values ('Morbi vestibulum, velit id pretium iaculis, diam erat fermentum justo, nec condimentum neque sapien placerat ante. Nulla justo.', '2022-07-30', 'MaecenasRhoncusAliquam.jpeg', null, true, 943, 810);
+
+insert into answer_vote (id_answer, id_user, likes) values (228, 100, false);
+insert into answer_vote (id_answer, id_user, likes) values (196, 557, true);
+insert into answer_vote (id_answer, id_user, likes) values (692, 861, true);
+insert into answer_vote (id_answer, id_user, likes) values (683, 821, true);
+insert into answer_vote (id_answer, id_user, likes) values (238, 530, false);
+
+insert into answer_comment (content, date, last_edited, id_user, id_answer) values ('Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat. In congue. Etiam justo.', '2022-11-05', null, 995, 564);
+insert into answer_comment (content, date, last_edited, id_user, id_answer) values ('Fusce lacus purus, aliquet at, feugiat non, pretium quis, lectus. Suspendisse potenti. In eleifend quam a odio.', '2022-10-25', null, 401, 641);
+insert into answer_comment (content, date, last_edited, id_user, id_answer) values ('Nunc rhoncus dui vel sem. Sed sagittis. Nam congue, risus semper porta volutpat, quam pede lobortis ligula, sit amet eleifend pede libero quis orci. Nullam molestie nibh in lectus. Pellentesque at nulla.', '2022-10-20', '2022-12-19', 35, 756);
+insert into answer_comment (content, date, last_edited, id_user, id_answer) values ('Nulla suscipit ligula in lacus. Curabitur at ipsum ac tellus semper interdum. Mauris ullamcorper purus sit amet nulla. Quisque arcu libero, rutrum ac, lobortis vel, dapibus at, diam.', '2022-10-25', '2022-11-27', 8, 859);
+insert into answer_comment (content, date, last_edited, id_user, id_answer) values ('Suspendisse accumsan tortor quis turpis.', '2022-10-29', '2022-11-18', 759, 112);
 ```
 
 
