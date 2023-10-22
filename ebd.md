@@ -42,7 +42,7 @@ O esquema relacional - convertido a partir do modelo conceptual - mapeia as clas
 
 ### 1. Esquema Relacional
 
-O esquema relacional do ***Community Connect*** encontra-se, em notação compacta, na Tabela 2. Este inclui os esquemas das relações (tabelas), bem como os seus atributos e respetivas restrições (domínios, atributos chave primária, atributos chave externa e restrições de intregridade: NOT NULL, UNIQUE, DEFAULT e CHECK).  
+O esquema relacional do ***Community Connect*** encontra-se, em notação compacta, na Tabela 2. Este inclui os esquemas das relações (tabelas), bem como os seus atributos e respetivas restrições (domínios, atributos chave primária, atributos chave externa e restrições de integridade: NOT NULL, UNIQUE, DEFAULT e CHECK).  
 
 | Referência da Relação | Notação Compacta da Relação |
 | --------------------- | --------------------------- |
@@ -167,7 +167,7 @@ Tabela 11 - Validação da Relação *user_follows_community*
 
 | **Tabela R09** | user_moderates_community |
 | -------------- | ------------------------ |
-| **Chaves** | {id_user, id_commmunity} |
+| **Chaves** | {id_user, id_community} |
 | **Dependências Funcionais** | *nenhuma* |
 | **Forma Normal** | BCNF |
 
