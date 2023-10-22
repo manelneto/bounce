@@ -540,9 +540,9 @@ DECLARE
     author INTEGER;
     q_title VARCHAR(255);
 BEGIN
-    SELECT id_user, title INTO author, q_title
+    SELECT answer.id_user, title INTO author, q_title
     FROM answer JOIN question ON answer.id_question = question.id
-    WHERE id = NEW.id_answer;
+    WHERE answer.id = NEW.id_answer;
 
     INSERT INTO notification (content, date, read, id_user)
     VALUES (CONCAT('You received a new vote on your answer to the question: ', q_title, '!'), CURRENT_DATE, FALSE, author);
@@ -609,15 +609,14 @@ CREATE TRIGGER new_answer_comment_notification
 CREATE OR REPLACE FUNCTION new_badge_notification() RETURNS TRIGGER AS
 $BODY$
 DECLARE
-    winner INTEGER;
     b_name VARCHAR(255);
 BEGIN
-    SELECT id_user, name INTO winner, b_name
-    FROM user_earns_badge NATURAL JOIN badge
+    SELECT name INTO b_name
+    FROM badge
     WHERE id = NEW.id_badge;
 
     INSERT INTO notification (content, date, read, id_user)
-    VALUES (CONCAT('You received a new badge: ', b_name, '!'), CURRENT_DATE, FALSE, winner);
+    VALUES (CONCAT('You received a new badge: ', b_name, '!'), CURRENT_DATE, FALSE, NEW.id_user);
 
     RETURN NEW;
 END

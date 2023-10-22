@@ -861,9 +861,9 @@ DECLARE
     author INTEGER;
     q_title VARCHAR(255);
 BEGIN
-    SELECT id_user, title INTO author, q_title
+    SELECT answer.id_user, title INTO author, q_title
     FROM answer JOIN question ON answer.id_question = question.id
-    WHERE id = NEW.id_answer;
+    WHERE answer.id = NEW.id_answer;
 
     INSERT INTO notification (content, date, read, id_user)
     VALUES (CONCAT('You received a new vote on your answer to the question: ', q_title, '!'), CURRENT_DATE, FALSE, author);
@@ -951,15 +951,14 @@ Tabela 42 - Gatilho para enviar notificações de comentários às próprias res
 CREATE FUNCTION new_badge_notification() RETURNS TRIGGER AS
 $BODY$
 DECLARE
-    winner INTEGER;
     b_name VARCHAR(255);
 BEGIN
-    SELECT id_user, name INTO winner, b_name
-    FROM user_earns_badge NATURAL JOIN badge
+    SELECT name INTO b_name
+    FROM badge
     WHERE id = NEW.id_badge;
 
     INSERT INTO notification (content, date, read, id_user)
-    VALUES (CONCAT('You received a new badge: ', b_name, '!'), CURRENT_DATE, FALSE, winner);
+    VALUES (CONCAT('You received a new badge: ', b_name, '!'), CURRENT_DATE, FALSE, NEW.id_user);
 
     RETURN NEW;
 END
@@ -1178,7 +1177,7 @@ FROM tag;
 
 -- Pesquisar perguntas por tags
 SELECT title, content, date
-FROM question NATURAL JOIN question_tags
+FROM question JOIN question_tags ON id = id_question
 WHERE id_tag = $id_tag;
 
 END TRANSACTION;
@@ -1666,6 +1665,7 @@ Neste anexo incluem-se os *scripts* de criação e de povoamento da base de dado
 ### A.1. Esquema da Base de Dados
 
 O *script* de criação da base de dados presente abaixo inclui o código necessário para (re)construir a estrutura da base de dados.
+
 O *script* também se encontra disponível em LINK.
 
 ```sql
@@ -2211,9 +2211,9 @@ DECLARE
     author INTEGER;
     q_title VARCHAR(255);
 BEGIN
-    SELECT id_user, title INTO author, q_title
+    SELECT answer.id_user, title INTO author, q_title
     FROM answer JOIN question ON answer.id_question = question.id
-    WHERE id = NEW.id_answer;
+    WHERE answer.id = NEW.id_answer;
 
     INSERT INTO notification (content, date, read, id_user)
     VALUES (CONCAT('You received a new vote on your answer to the question: ', q_title, '!'), CURRENT_DATE, FALSE, author);
@@ -2280,15 +2280,14 @@ CREATE TRIGGER new_answer_comment_notification
 CREATE OR REPLACE FUNCTION new_badge_notification() RETURNS TRIGGER AS
 $BODY$
 DECLARE
-    winner INTEGER;
     b_name VARCHAR(255);
 BEGIN
-    SELECT id_user, name INTO winner, b_name
-    FROM user_earns_badge NATURAL JOIN badge
+    SELECT name INTO b_name
+    FROM badge
     WHERE id = NEW.id_badge;
 
     INSERT INTO notification (content, date, read, id_user)
-    VALUES (CONCAT('You received a new badge: ', b_name, '!'), CURRENT_DATE, FALSE, winner);
+    VALUES (CONCAT('You received a new badge: ', b_name, '!'), CURRENT_DATE, FALSE, NEW.id_user);
 
     RETURN NEW;
 END
@@ -2404,6 +2403,9 @@ CREATE TRIGGER award_badge_on_first_100_answer
 ### A.2. Povoamento da Base de Dados
 
 O excerto do *script* de povoamento da base de dados presente abaixo inclui o código necessário para preencher a base de dados com um número razoável de tuplos de valores plausíveis para os campos das tabelas criadas anteriormente.
+
+As tabelas *notification*, *user_earns_badge* e *reputation* não contêm operações de inserção neste ficheiro porque tal é feito automaticamente pelos gatilhos definidos com os dados inseridos nas outras tabelas.
+
 O *script* completo para o povoamento da base de dados encontra-se disponível em LINK.
 
 ```sql
