@@ -27,13 +27,14 @@ board_menu :-
     BoardSize mod 2 =:= 0,
     BoardSize > 3.
 
-print_full_list([]) :-
-    nl.
-print_full_list([H]) :-
-    write(H), !.
-print_full_list([H | T]) :-
-    write(H), write(', '),
-    print_full_list(T).
+print_row([]) :- nl, nl.
+print_row([H|T]) :-
+    write(H), write('  '),
+    print_row(T).
 
-print_full_list.
+print_board([]).
+print_board([H|T]) :-
+    print_row(H),
+    print_board(T).
+
 
