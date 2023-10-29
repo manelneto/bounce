@@ -20,21 +20,32 @@ bot_menu :-
     write('2 - Hard Bot\n').
 
 % board_menu/0
-board_menu :-
+board_menu(BoardSize) :-
     write('Board size (should be even and greater than 3): \n'),
     repeat,
     read_number(BoardSize),
     BoardSize mod 2 =:= 0,
-    BoardSize > 3.
+    BoardSize > 3,
+    BoardSize < 11.
 
-print_row([]) :- nl, nl.
-print_row([H|T]) :-
-    write(H), write('  '),
-    print_row(T).
+coordinates(ColposToMove, RowToMove,ColposToPlace, RowToPlace) :-
+    write('Move your piece from: \n'),
+    write('Column number: \n'),
+    repeat,
+    read_number(ColposToMove),
+    write('Row number: \n'),
+    repeat,
+    read_number(RowToMove),
+    write('To : \n'),
+    write('Column number: \n'),
+    repeat,
+    read_number(ColposToPlace),
+    write('Row number: \n'),
+    repeat,
+    read_number(RowToPlace).
 
-print_board([]).
-print_board([H|T]) :-
-    print_row(H),
-    print_board(T).
+
+
+
 
 

@@ -12,3 +12,16 @@ read_number_aux(Acc, _, X) :-
 
 read_number_aux(X, true, X).
 
+
+replace_piece(Piece, Board, Colpos, Rowpos, Res) :-
+    nth0(Rowpos, Board, Row),
+    replace_col_pos(Piece, Colpos, Row, NewRow), %susbtituir a piece
+    replace_in_list(Rowpos, NewRow, Board, Res). %susbtituir a linha pela nova com a peça substituida
+
+replace_col_pos(Piece, Colpos, Row, Res) :-
+    nth0(Colpos, Row, _, R),
+    nth0(Colpos, Res, Piece, R).
+
+replace_in_list(Rowpos, Row, OldList, NewList) :-
+    nth0(Rowpos, OldList, _, Temp),
+    nth0(Rowpos, NewList, Row, Temp).
