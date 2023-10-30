@@ -33,11 +33,10 @@ create_board_aux(N, Counter, Acc, List) :-
     Counter < N - 1,
     create_board_aux(N, Counter + 1, [Row | Acc], List).
 
-create_board_aux(N, Counter, Acc, List) :-
+create_board_aux(N, Counter, Acc, [Row | Acc]) :-
     Counter mod 2 =:= 0,
     create_row(N, red, Row),
-    Counter >= N - 1,
-    List = [Row | Acc]. % TODO
+    Counter >= N - 1.
 
 create_board_aux(N, Counter, Acc, List) :-
     Counter mod 2 =\= 0,
@@ -45,11 +44,10 @@ create_board_aux(N, Counter, Acc, List) :-
     Counter < N - 1,
     create_board_aux(N, Counter + 1, [Row | Acc], List).
 
-create_board_aux(N, Counter, Acc, List) :-
+create_board_aux(N, Counter, Acc, [Row | Acc]) :-
     Counter mod 2 =\= 0,
     create_row(N, blue, Row),
-    Counter >= N - 1,
-    List = [Row | Acc]. % TODO
+    Counter >= N - 1.
 
 % create_all_board(+BoardSize, -Board)
 create_all_board(BoardSize, Board) :-
