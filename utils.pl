@@ -13,11 +13,11 @@ read_number_aux(Acc, _, X) :-
 read_number_aux(X, true, X).
 
 % print_row(+Row)
-print_row([]) :- nl, nl.
+print_row([]) :- nl, print('---------------'), nl.
 print_row([H | T]) :-
     translate(H, P),
     write(P),
-    write('  '),
+    write(' | '),
     print_row(T).
 
 % print_board(+Board)
@@ -44,6 +44,6 @@ coordinates(SourceRow-SourceCol, DestRow-DestCol) :-
     read_number(DestCol).
 
 % translate(?Internal, ?External)
-translate(empty, '.').
+translate(empty, ' ').
 translate(blue, 'B').
 translate(red, 'r').
