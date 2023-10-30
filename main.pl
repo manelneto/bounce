@@ -69,7 +69,7 @@ print_board([H|T]) :-
 
 
 complete_play(Board, BoardNew, Piece, ColposToMove, RowToMove, ColposToPlace, RowposToPlace) :-
-    replace_piece('E', Board, ColposToMove, RowToMove, B1),
+    replace_piece('.', Board, ColposToMove, RowToMove, B1),
     replace_piece(Piece, B1, ColposToPlace, RowposToPlace, BoardNew).
 
 
