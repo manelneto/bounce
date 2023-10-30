@@ -1,82 +1,68 @@
 :- consult(menu).
-:- consult(plays).
-:- use_module(library(lists)).
+:- consult(game).
 
+% play/0
 play :-
     bounce,
     board_menu(BoardSize),
     create_all_board(BoardSize, Board),
-    game_loop(Board).
+    game_loop(Board-1).
 
-create_row(N, List,CurrentChar) :-
-    create_row_aux(N, [], List, CurrentChar).
+% switch_char(?Char1, ?Char2)
+switch_char(blue, red).
+switch_char(red, blue).
 
-create_row_aux(0, List, List, _).
-create_row_aux(N, Acc, List, CurrentChar) :-
+% create_row(+RowSize, +CurrentChar, -Row)
+create_row(RowSize, CurrentChar, Row) :-
+    create_row_aux(RowSize, CurrentChar, [], Row).
+
+create_row_aux(0, _, Row, Row).
+create_row_aux(N, CurrentChar, Acc, Row) :-
     N > 0,
     N1 is N - 1,
     switch_char(CurrentChar, NextChar),
-    create_row_aux(N1, [CurrentChar|Acc], List, NextChar).
+    create_row_aux(N1, NextChar, [CurrentChar | Acc], Row).
 
-switch_char('R', 'b').
-switch_char('b', 'R').
-
-create_board(N, Listoflists) :-
-    create_board_aux(N, 0, [], Listoflists).
+% create_board(+BoardSize, -Board)
+create_board(BoardSize, Board) :-
+    create_board_aux(BoardSize, 0, [], Board).
 
 create_board_aux(N, Counter, Acc, List) :-
     Counter mod 2 =:= 0,
-    create_row(N, Row, 'R'),
+    create_row(N, red, Row),
     Counter < N - 1,
     create_board_aux(N, Counter + 1, [Row | Acc], List).
 
 create_board_aux(N, Counter, Acc, List) :-
     Counter mod 2 =:= 0,
-    create_row(N, Row, 'R'),
+    create_row(N, red, Row),
     Counter >= N - 1,
-    List = [Row | Acc].
+    List = [Row | Acc]. % TODO
 
 create_board_aux(N, Counter, Acc, List) :-
     Counter mod 2 =\= 0,
-    create_row(N, Row, 'b'),
+    create_row(N, blue, Row),
     Counter < N - 1,
     create_board_aux(N, Counter + 1, [Row | Acc], List).
 
 create_board_aux(N, Counter, Acc, List) :-
     Counter mod 2 =\= 0,
-    create_row(N, Row, 'b'),
+    create_row(N, blue, Row),
     Counter >= N - 1,
-    List = [Row | Acc].
+    List = [Row | Acc]. % TODO
 
-create_all_board(N, Board) :-
-    create_board(N, B),
-    N1 is N - 1,
-    replace_piece('.', B, 0, 0, B1),
-    replace_piece('.', B1, N1, 0, B2),
-    replace_piece('.', B2, 0, N1, B3),
-    replace_piece('.', B3, N1, N1, Board),
-    print_board(Board).
+% create_all_board(+BoardSize, -Board)
+create_all_board(BoardSize, Board) :-
+    create_board(BoardSize, B),
+    Last is BoardSize - 1,
+    replace_piece(B, empty, 0-0, _B1),
+    replace_piece(_B1, empty, 0-Last, _B2),
+    replace_piece(_B2, empty, Last-0, _B3),
+    replace_piece(_B3, empty, Last-Last, Board).
 
-print_row([]) :- nl, nl.
-print_row([H|T]) :-
-    write(H), write('  '),
-    print_row(T).
-
-print_board([]).
-print_board([H|T]) :-
-    print_row(H),
-    print_board(T).
-
-
-complete_play(Board, BoardNew, Piece, ColposToMove, RowToMove, ColposToPlace, RowposToPlace) :-
-    replace_piece('.', Board, ColposToMove, RowToMove, B1),
-    replace_piece(Piece, B1, ColposToPlace, RowposToPlace, BoardNew).
-
-
-game_loop(Board) :-
-    coordinates(ColposToMove, RowToMove, ColposToPlace, RowToPlace),
-    complete_play(Board, BoardNew, 'b', ColposToMove, RowToMove, ColposToPlace, RowToPlace),
-    print_board(BoardNew).
-
-
-
+% game_loop(+GameState)
+game_loop(Board-Player) :-
+    print_board(Board),
+    coordinates(SourceRow-SourceCol, DestRow-DestCol),
+    move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState),
+    game_loop(NewGameState).

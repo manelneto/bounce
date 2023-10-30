@@ -1,4 +1,4 @@
-% read_number(-X).
+% read_number(-X)
 read_number(X) :-
     read_number_aux(0, false, X).
 
@@ -12,16 +12,38 @@ read_number_aux(Acc, _, X) :-
 
 read_number_aux(X, true, X).
 
+% print_row(+Row)
+print_row([]) :- nl, nl.
+print_row([H | T]) :-
+    translate(H, P),
+    write(P),
+    write('  '),
+    print_row(T).
 
-replace_piece(Piece, Board, Colpos, Rowpos, Res) :-
-    nth0(Rowpos, Board, Row),
-    replace_col_pos(Piece, Colpos, Row, NewRow), %susbtituir a piece
-    replace_in_list(Rowpos, NewRow, Board, Res). %susbtituir a linha pela nova com a peça substituida
+% print_board(+Board)
+print_board([]).
+print_board([H | T]) :-
+    print_row(H),
+    print_board(T).
 
-replace_col_pos(Piece, Colpos, Row, Res) :-
-    nth0(Colpos, Row, _, R),
-    nth0(Colpos, Res, Piece, R).
+% coordinates(-SourcePosition, -DestPosition)
+coordinates(SourceRow-SourceCol, DestRow-DestCol) :-
+    write('Move your piece from\n'),
+    write('Row number: \n'),
+    repeat,
+    read_number(SourceRow),
+    write('Column number: \n'),
+    repeat,
+    read_number(SourceCol),
+    write('To: \n'),
+    write('Row number: \n'),
+    repeat,
+    read_number(DestRow),
+    write('Column number: \n'),
+    repeat,
+    read_number(DestCol).
 
-replace_in_list(Rowpos, Row, OldList, NewList) :-
-    nth0(Rowpos, OldList, _, Temp),
-    nth0(Rowpos, NewList, Row, Temp).
+% translate(?Internal, ?External)
+translate(empty, '.').
+translate(blue, 'B').
+translate(red, 'r').

@@ -19,7 +19,7 @@ bot_menu :-
     write('1 - Easy Bot\n'),
     write('2 - Hard Bot\n').
 
-% board_menu/0
+% board_menu(-BoardSize)
 board_menu(BoardSize) :-
     write('Board size (should be even and greater than 3): \n'),
     repeat,
@@ -27,25 +27,4 @@ board_menu(BoardSize) :-
     BoardSize mod 2 =:= 0,
     BoardSize > 3,
     BoardSize < 11.
-
-coordinates(ColposToMove, RowToMove,ColposToPlace, RowToPlace) :-
-    write('Move your piece from: \n'),
-    write('Column number: \n'),
-    repeat,
-    read_number(ColposToMove),
-    write('Row number: \n'),
-    repeat,
-    read_number(RowToMove),
-    write('To : \n'),
-    write('Column number: \n'),
-    repeat,
-    read_number(ColposToPlace),
-    write('Row number: \n'),
-    repeat,
-    read_number(RowToPlace).
-
-
-
-
-
 

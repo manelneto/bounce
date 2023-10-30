@@ -103,9 +103,8 @@ replace_piece(Board, Piece, RowPos-ColPos, NewBoard) :-
 
 % move_piece(+Board, +Piece, +SourcePos, +DestPos, -NewBoard).
 move_piece(Board, Piece, SourcePos, DestPos, NewBoard) :-
-    replace_piece(Board, e, SourcePos, _B),
+    replace_piece(Board, empty, SourcePos, _B),
     replace_piece(_B, Piece, DestPos, NewBoard).
-
 
 % larger_group(+Board, +SourcePos, +DestPos).
 larger_group(Board, SourcePos, DestPos) :-
@@ -125,8 +124,8 @@ valid_position(Board, RowPos-ColPos) :-
     between(0, N1, ColPos).
 
 % player_color(?Player, ?Piece).
-player_color(1, b).
-player_color(2, r).
+player_color(1, blue).
+player_color(2, red).
 
 % player_piece(+Board, +Player, +Position).
 player_piece(Board, Player, Position) :-
@@ -135,7 +134,7 @@ player_piece(Board, Player, Position) :-
 
 % empty(+Board, +Position).
 empty(Board, Position) :-
-    piece(Board, Position, e).
+    piece(Board, Position, empty).
 
 % can_move(+GameState, +Move).
 can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
