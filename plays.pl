@@ -1,3 +1,0 @@
-
-:- consult(utils).
-
