@@ -49,7 +49,7 @@ read_string(NamePlayer, List):-
     get_char(Char),
     Char \= '\n',
     append(List, [Char], ListR),
-    get_line(NamePlayer, ListR).
+    read_string(NamePlayer, ListR).
 read_string(NamePlayer, List):-
     atom_chars(NamePlayer, List).
 
