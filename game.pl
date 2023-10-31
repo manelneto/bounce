@@ -1,29 +1,6 @@
 :- use_module(library(lists)).
 :- use_module(library(between)).
 
-% GameState = Board-Player
-% GameState = [[...], ...]-1/2
-
-%     Col ------>
-%  Row
-%   |
-%   |
-%   |
-%  \ /
-%   .
-
-% Position = Row-Col
-
-% 0-0 0-1 0-2 0-3
-% 1-0 1-1 1-2 1-3
-% 2-0 2-1 2-2 2-3
-% 3-0 3-1 3-2 3-3
-
-% Move = SourcePosition-DestPosition
-% Move = SourceRow-SourceCol-DestRow-DestCol
-
-
-
 % up(+Board, +Position, -UpPosition).
 up(_, Row-Col, UpRow-Col) :-
     Row > 0,
@@ -77,16 +54,15 @@ neighbor(Board, Position, NeighborPosition) :-
     right(Board, Position, NeighborPosition),
     same_color(Board, Position, NeighborPosition).
 
+% flood_fill(+GameState, +ToFill, -Filled).
+flood_fill(Board, ToFill, Filled) :-
+    flood_fill_aux(Board, ToFill, [], Filled).
 
-% flood_fill(+GameState, +Visited, -Filled).
-flood_fill(Board, [Position | T], Filled) :-
-    neighbor(Board, Position, NeighborPosition),
-    \+member(NeighborPosition, [Position | T]),
-    flood_fill(Board, [NeighborPosition, Position | T], Filled),
-    !.
-
-flood_fill(_, Filled, Filled).
-
+flood_fill_aux(_, [], Filled, Filled).
+flood_fill_aux(Board, [Position | T], Acc, Filled) :-
+    findall(NeighborPosition, (neighbor(Board, Position, NeighborPosition), \+member(NeighborPosition, T), \+member(NeighborPosition, Acc)), Neighbors),
+    append(T, Neighbors, ToVisit),
+    flood_fill_aux(Board, ToVisit, [Position | Acc], Filled).
 
 % replace(+List, +Element, +Index, -NewList).
 replace(List, Element, Index, NewList) :-
@@ -128,8 +104,8 @@ player_color(1, red).
 player_color(2, blue).
 
 
-% player_piece(+Board, +Player, +Position).
-player_piece(Board, Player, Position) :-
+% check_player_piece(+Board, +Player, +Position).
+check_player_piece(Board, Player, Position) :-
     get_piece(Board, Position, Piece),
     player_color(Player, Piece).
 
@@ -141,7 +117,7 @@ is_empty(Board, Position) :-
 can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
     valid_position(Board, SourceRow-SourceCol),
     valid_position(Board, DestRow-DestCol),
-    player_piece(Board, Player, SourceRow-SourceCol),
+    check_player_piece(Board, Player, SourceRow-SourceCol),
     empty(Board, DestRow-DestCol),
     check_larger_group(Board, SourceRow-SourceCol, DestRow-DestCol).
 
@@ -161,3 +137,56 @@ move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewBoard-NewPlayer) :-
     player_color(Player, Piece),
     move_piece(Board, Piece, SourceRow-SourceCol, DestRow-DestCol, NewBoard),
     change_player(Player, NewPlayer).
+
+
+% get_piece_position(+Row, +Piece, -PieceCol)
+get_piece_col(Row, Piece, PieceCol) :-
+    nth0(PieceCol, Row, Piece).
+
+invert(List, Inverted) :-
+    invert_aux(List, [], Inverted).
+
+invert_aux([], Inverted, Inverted).
+invert_aux([H | T], Acc, Inverted) :-
+    invert_aux(T, [H | Acc], Inverted).
+
+
+flatten(NestedList, FlatList) :-
+    flatten_aux(NestedList, [], FlatListInverted),
+    invert(FlatListInverted, FlatList).
+
+flatten_aux([], FlatList, FlatList).
+flatten_aux([H | T], Acc, FlatList) :-
+    invert(H, HInverted),
+    append(HInverted, Acc, Acc1),
+    flatten_aux(T, Acc1, FlatList).    
+
+get_piece_position(Board, Piece, PieceRow-PieceCol) :-
+    length(Board, BoardSize),
+    flatten(Board, FlatBoard),
+    nth0(Index, FlatBoard, Piece),
+    PieceRow is Index div BoardSize,
+    PieceCol is Index mod BoardSize.
+
+player_pieces_number(Board, Piece, N) :-
+    flatten(Board, FlatBoard),
+    player_pieces_number_aux(FlatBoard, Piece, 0, N).
+
+player_pieces_number_aux([], _, N, N).
+
+player_pieces_number_aux([Piece | T], Piece, Acc, N) :-
+    Acc1 is Acc + 1,
+    player_pieces_number_aux(T, Piece, Acc1, N),
+    !.
+
+player_pieces_number_aux([_ | T], Piece, Acc, N) :-
+    player_pieces_number_aux(T, Piece, Acc, N). 
+
+% game_over(+GameState, -Winner)
+game_over(Board-Player, Winner) :-
+    player_color(Player, Piece),
+    get_piece_position(Board, Piece, Position),
+    !,
+    flood_fill(Board, [Position], Group),
+    player_pieces_number(Board, Piece, N),
+    length(Group, N).
