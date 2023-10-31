@@ -45,6 +45,14 @@ print_board([H | T]) :-
     print_row(H),
     print_board(T).
 
+read_string(NamePlayer, List):-
+    get_char(Char),
+    Char \= '\n',
+    append(List, [Char], ListR),
+    get_line(NamePlayer, ListR).
+read_string(NamePlayer, List):-
+    atom_chars(NamePlayer, List).
+
 % coordinates(-SourcePosition, -DestPosition)
 coordinates(SourceRow-SourceCol, DestRow-DestCol) :-
     write('Move your piece from\n'),
@@ -66,3 +74,4 @@ coordinates(SourceRow-SourceCol, DestRow-DestCol) :-
 translate(empty, ' ').
 translate(blue, 'B').
 translate(red, 'r').
+

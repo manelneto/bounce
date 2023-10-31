@@ -4,6 +4,10 @@
 % play/0
 play :-
     bounce,
+    get_color(Player),
+    get_name(Player),
+    change_player(Player, NewPlayer),
+    get_name(NewPlayer),
     board_menu(BoardSize),
     create_all_board(BoardSize, Board),
     game_loop(Board-1).
@@ -58,9 +62,16 @@ create_all_board(BoardSize, Board) :-
     replace_piece(_B2, empty, Last-0, _B3),
     replace_piece(_B3, empty, Last-Last, Board).
 
+print_turn(Player) :-
+    player_name(Player, Name),
+    write('It is your turn, '),
+    write(Name),
+    write('!'), nl.
+
 % game_loop(+GameState)
 game_loop(Board-Player) :-
     print_board(Board),
+    print_turn(Player),
     coordinates(SourceRow-SourceCol, DestRow-DestCol),
     move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState),
     game_loop(NewGameState).

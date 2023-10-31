@@ -28,3 +28,16 @@ board_menu(BoardSize) :-
     BoardSize > 3,
     BoardSize < 11.
 
+get_color(Player):-
+    write('Select the color you would like to play\n'),
+    write('1 - Red\n'),
+    write('2 - Blue\n'),
+    read_number(Player).
+
+get_name(Player) :-
+    write('What is your name, player '),
+    write(Player),
+    write('?'),
+    nl,
+    read_string(Name, []),
+    asserta(player_name(Player, Name)).

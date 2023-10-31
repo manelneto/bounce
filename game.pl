@@ -124,8 +124,9 @@ valid_position(Board, RowPos-ColPos) :-
     between(0, N1, ColPos).
 
 % player_color(?Player, ?Piece).
-player_color(1, blue).
-player_color(2, red).
+player_color(1, red).
+player_color(2, blue).
+
 
 % player_piece(+Board, +Player, +Position).
 player_piece(Board, Player, Position) :-
