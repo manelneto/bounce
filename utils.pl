@@ -12,17 +12,36 @@ read_number_aux(Acc, _, X) :-
 
 read_number_aux(X, true, X).
 
+% print_board_line(+BoardSize)
+print_board_line(0) :-
+    write(' '),
+    nl.
+print_board_line(BoardSize) :-
+    write(' ---'),
+    BoardSize1 is BoardSize - 1,
+    print_board_line(BoardSize1).
+
 % print_row(+Row)
-print_row([]) :- nl, print('---------------'), nl.
+print_row([]) :-
+    nl.
 print_row([H | T]) :-
     translate(H, P),
+    write(' '),
     write(P),
-    write(' | '),
+    write(' |'),
     print_row(T).
 
 % print_board(+Board)
-print_board([]).
+print_board([H]) :-
+    length(H, BoardSize),
+    print_board_line(BoardSize),
+    write('|'),
+    print_row(H),
+    print_board_line(BoardSize).
 print_board([H | T]) :-
+    length(H, BoardSize),
+    print_board_line(BoardSize),
+    write('|'),
     print_row(H),
     print_board(T).
 
