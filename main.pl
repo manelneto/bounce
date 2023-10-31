@@ -4,6 +4,9 @@
 % play/0
 play :-
     bounce,
+    %get_color(Player),
+    %get_name(Player),
+    %repeat,
     board_menu(BoardSize),
     create_all_board(BoardSize, Board),
     game_loop(Board-1).
