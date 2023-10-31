@@ -50,14 +50,14 @@ right(Board, Row-Col, Row-RightCol) :-
 
 
 % piece(?Board, +Position, ?Piece).
-piece(Board, Row-Col, Piece) :-
+get_piece(Board, Row-Col, Piece) :-
     nth0(Row, Board, BoardRow),
     nth0(Col, BoardRow, Piece).
 
 % same_color(+Board, +Position1, +Position2).
 same_color(Board, Position1, Position2) :-
-    piece(Board, Position1, Piece),
-    piece(Board, Position2, Piece).
+    get_piece(Board, Position1, Piece),
+    get_piece(Board, Position2, Piece).
 
 
 % neighbor(+Board, +Position, -NeighborPosition).
@@ -106,11 +106,11 @@ move_piece(Board, Piece, SourcePos, DestPos, NewBoard) :-
     replace_piece(Board, empty, SourcePos, _B),
     replace_piece(_B, Piece, DestPos, NewBoard).
 
-% larger_group(+Board, +SourcePos, +DestPos).
-larger_group(Board, SourcePos, DestPos) :-
+% check_larger_group(+Board, +SourcePos, +DestPos).
+check_larger_group(Board, SourcePos, DestPos) :-
     flood_fill(Board, [SourcePos], SourceFilled),
     length(SourceFilled, SourceSize),
-    piece(Board, SourcePos, Piece),
+    get_piece(Board, SourcePos, Piece),
     move_piece(Board, Piece, SourcePos, DestPos, NewBoard),
     flood_fill(NewBoard, [DestPos], DestFilled),
     length(DestFilled, DestSize),
@@ -130,12 +130,12 @@ player_color(2, blue).
 
 % player_piece(+Board, +Player, +Position).
 player_piece(Board, Player, Position) :-
-    piece(Board, Position, Piece),
+    get_piece(Board, Position, Piece),
     player_color(Player, Piece).
 
 % empty(+Board, +Position).
-empty(Board, Position) :-
-    piece(Board, Position, empty).
+is_empty(Board, Position) :-
+    get_piece(Board, Position, empty).
 
 % can_move(+GameState, +Move).
 can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
@@ -143,7 +143,7 @@ can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
     valid_position(Board, DestRow-DestCol),
     player_piece(Board, Player, SourceRow-SourceCol),
     empty(Board, DestRow-DestCol),
-    larger_group(Board, SourceRow-SourceCol, DestRow-DestCol).
+    check_larger_group(Board, SourceRow-SourceCol, DestRow-DestCol).
 
 % valid_moves(+GameState, +Player, -ListOfMoves).
 valid_moves(Board-_, Player, ListOfMoves) :-
