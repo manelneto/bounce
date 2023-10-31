@@ -78,7 +78,7 @@ neighbor(Board, Position, NeighborPosition) :-
     same_color(Board, Position, NeighborPosition).
 
 
-% flood_fill(+GameState, +Positions, -Filled).
+% flood_fill(+GameState, +Visited, -Filled).
 flood_fill(Board, [Position | T], Filled) :-
     neighbor(Board, Position, NeighborPosition),
     \+member(NeighborPosition, [Position | T]),
