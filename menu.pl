@@ -40,4 +40,4 @@ get_name(Player) :-
     write('?'),
     nl,
     read_string(Name, []),
-    asserta(translate(Player, Name)).
+    asserta(player_name(Player, Name)).

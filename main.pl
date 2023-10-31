@@ -63,7 +63,7 @@ create_all_board(BoardSize, Board) :-
     replace_piece(_B3, empty, Last-Last, Board).
 
 print_turn(Player) :-
-    translate(Player, Name),
+    player_name(Player, Name),
     write('It is your turn, '),
     write(Name),
     write('!'), nl.
