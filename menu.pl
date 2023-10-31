@@ -35,6 +35,9 @@ get_color(Player):-
     read_number(Player).
 
 get_name(Player) :-
-    write('What is your name\n'),
-    get_line(Name, []),
-    asserta(player_name(Player, Name)).
+    write('What is your name, player '),
+    write(Player),
+    write('?'),
+    nl,
+    read_string(Name, []),
+    asserta(translate(Player, Name)).
