@@ -150,7 +150,6 @@ invert_aux([], Inverted, Inverted).
 invert_aux([H | T], Acc, Inverted) :-
     invert_aux(T, [H | Acc], Inverted).
 
-
 flatten(NestedList, FlatList) :-
     flatten_aux(NestedList, [], FlatListInverted),
     invert(FlatListInverted, FlatList).
@@ -168,6 +167,7 @@ get_piece_position(Board, Piece, PieceRow-PieceCol) :-
     PieceRow is Index div BoardSize,
     PieceCol is Index mod BoardSize.
 
+% ha forma de fazer melhor ->findall de todas as posicoes e length da lista
 player_pieces_number(Board, Piece, N) :-
     flatten(Board, FlatBoard),
     player_pieces_number_aux(FlatBoard, Piece, 0, N).
@@ -191,3 +191,4 @@ game_over(Board-Player, Winner) :-
     flood_fill(Board, [Position], Group),
     player_pieces_number(Board, Piece, N),
     length(Group, N).
+

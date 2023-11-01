@@ -1,8 +1,20 @@
 :- consult(menu).
 :- consult(game).
+:- consult(bots).
 
 % play/0
 play :-
+    bounce,
+    get_color(Player),
+    get_name(Player),
+    change_player(Player, NewPlayer),
+    get_name(NewPlayer),
+    board_menu(BoardSize),
+    create_all_board(BoardSize, Board),
+    !,
+    game_loop(Board-1).
+
+play_random_bot :-
     bounce,
     get_color(Player),
     get_name(Player),
