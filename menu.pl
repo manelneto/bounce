@@ -41,3 +41,4 @@ get_name(Player) :-
     nl,
     read_string(Name, []),
     asserta(player_name(Player, Name)).
+    

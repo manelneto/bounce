@@ -63,11 +63,14 @@ create_all_board(BoardSize, Board) :-
     replace_piece(_B2, empty, Last-0, _B3),
     replace_piece(_B3, empty, Last-Last, Board).
 
-print_turn(Player) :-
+% display_game(+GameState)
+display_game(Board-Player) :-
+    length(Board, BoardSize),
+    print_header(0, BoardSize),
+    print_board(Board, 0),
+    print_board_line(BoardSize),
     player_name(Player, Name),
-    write('It is your turn, '),
-    write(Name),
-    write('!'), nl.
+    print_turn(Name).
 
 game_loop(Board-Player) :-
     game_over(Board-Player, Winner), !,
@@ -83,11 +86,7 @@ game_play(Board-Player, NewGameState) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
     N > 0,
-    length(Board, BoardSize),
-    write('    '),
-    print_grid_line(0, BoardSize),
-    print_board(Board, 0),
-    print_turn(Player),
+    display_game(Board-Player),
     repeat,
     coordinates(SourceRow-SourceCol, DestRow-DestCol),
     move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState),
@@ -97,11 +96,7 @@ game_play(Board-Player, NewBoard-NewPlayer) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
     N =:= 0,
-    length(Board, BoardSize),
-    write('    '),
-    print_grid_line(0, BoardSize),
-    print_board(Board, 0),
-    print_turn(Player),
+    display_game(Board-Player),
     repeat,
     coordinates(Row-Col),
     replace_piece(Board, empty, Row-Col, NewBoard),
