@@ -82,17 +82,27 @@ game_play(Board-Player, NewGameState) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
     N > 0,
-    print_board(Board),
+    length(Board, BoardSize),
+    write('    '),
+    print_grid_line(0, BoardSize),
+    print_board(Board, 0),
     print_turn(Player),
+    repeat,
     coordinates(SourceRow-SourceCol, DestRow-DestCol),
-    move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState).
+    move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState),
+    !.
 
 game_play(Board-Player, NewBoard-NewPlayer) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
     N =:= 0,
-    print_board(Board),
+    length(Board, BoardSize),
+    write('    '),
+    print_grid_line(0, BoardSize),
+    print_board(Board, 0),
     print_turn(Player),
+    repeat,
     coordinates(Row-Col),
     replace_piece(Board, empty, Row-Col, NewBoard),
-    change_player(Player, NewPlayer).
+    change_player(Player, NewPlayer),
+    !.

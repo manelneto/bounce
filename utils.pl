@@ -21,6 +21,16 @@ print_board_line(BoardSize) :-
     BoardSize1 is BoardSize - 1,
     print_board_line(BoardSize1).
 
+% print_grid_line(+N, +BoardSize)
+print_grid_line(BoardSize, BoardSize) :-
+    nl.
+print_grid_line(N, BoardSize) :-
+    write('  '),
+    write(N),
+    write(' '),
+    N1 is N + 1,
+    print_grid_line(N1, BoardSize).
+
 % print_row(+Row)
 print_row([]) :-
     nl.
@@ -32,18 +42,26 @@ print_row([H | T]) :-
     print_row(T).
 
 % print_board(+Board)
-print_board([H]) :-
+print_board([H], N) :-
     length(H, BoardSize),
+    write('    '),
     print_board_line(BoardSize),
-    write('|'),
+    write('  '),
+    write(N),
+    write(' |'),
     print_row(H),
+    write('    '),
     print_board_line(BoardSize).
-print_board([H | T]) :-
+print_board([H | T], N) :-
     length(H, BoardSize),
+    write('    '),
     print_board_line(BoardSize),
-    write('|'),
+    write('  '),
+    write(N),
+    write(' |'),
     print_row(H),
-    print_board(T).
+    N1 is N + 1,
+    print_board(T, N1).
 
 read_string(NamePlayer, List):-
     get_char(Char),
