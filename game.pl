@@ -184,7 +184,8 @@ player_pieces_number_aux([_ | T], Piece, Acc, N) :-
 
 % game_over(+GameState, -Winner)
 game_over(Board-Player, Winner) :-
-    player_color(Player, Piece),
+    change_player(Player, Winner),
+    player_color(Winner, Piece),
     get_piece_position(Board, Piece, Position),
     !,
     flood_fill(Board, [Position], Group),

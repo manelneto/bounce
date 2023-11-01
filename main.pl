@@ -68,18 +68,26 @@ print_turn(Player) :-
     write(Name),
     write('!'), nl.
 
-% game_loop(+GameState)
 game_loop(Board-Player) :-
+    game_over(Board-Player, Winner), !,
+    print(Winner),
+    print(' won!\n').
+
+game_loop(Board-Player) :-
+    game_play(Board-Player, NewBoard-NewPlayer),
+    game_loop(NewBoard-NewPlayer).
+
+
+game_play(Board-Player, NewGameState) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
     N > 0,
     print_board(Board),
     print_turn(Player),
     coordinates(SourceRow-SourceCol, DestRow-DestCol),
-    move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState),
-    game_loop(NewGameState).
+    move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState).
 
-game_loop(Board-Player) :-
+game_play(Board-Player, NewBoard-NewPlayer) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
     N =:= 0,
@@ -87,5 +95,4 @@ game_loop(Board-Player) :-
     print_turn(Player),
     coordinates(Row-Col),
     replace_piece(Board, empty, Row-Col, NewBoard),
-    change_player(Player, NewPlayer),
-    game_loop(NewBoard-NewPlayer).
+    change_player(Player, NewPlayer).
