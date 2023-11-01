@@ -53,6 +53,16 @@ read_string(NamePlayer, List):-
 read_string(NamePlayer, List):-
     atom_chars(NamePlayer, List).
 
+% coordinates(-Position)
+coordinates(Row-Col) :-
+    write('You do not have a valid move. Remove your piece from\n'),
+    write('Row number: \n'),
+    repeat,
+    read_number(Row),
+    write('Column number: \n'),
+    repeat,
+    read_number(Col).
+
 % coordinates(-SourcePosition, -DestPosition)
 coordinates(SourceRow-SourceCol, DestRow-DestCol) :-
     write('Move your piece from\n'),

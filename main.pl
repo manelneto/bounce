@@ -70,8 +70,22 @@ print_turn(Player) :-
 
 % game_loop(+GameState)
 game_loop(Board-Player) :-
+    valid_moves(Board-Player, Player, ValidMoves),
+    length(ValidMoves, N),
+    N > 0,
     print_board(Board),
     print_turn(Player),
     coordinates(SourceRow-SourceCol, DestRow-DestCol),
     move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState),
     game_loop(NewGameState).
+
+game_loop(Board-Player) :-
+    valid_moves(Board-Player, Player, ValidMoves),
+    length(ValidMoves, N),
+    N =:= 0,
+    print_board(Board),
+    print_turn(Player),
+    coordinates(Row-Col),
+    replace_piece(Board, empty, Row-Col, NewBoard),
+    change_player(Player, NewPlayer),
+    game_loop(NewBoard-NewPlayer).

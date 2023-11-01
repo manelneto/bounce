@@ -118,7 +118,7 @@ can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
     valid_position(Board, SourceRow-SourceCol),
     valid_position(Board, DestRow-DestCol),
     check_player_piece(Board, Player, SourceRow-SourceCol),
-    empty(Board, DestRow-DestCol),
+    is_empty(Board, DestRow-DestCol),
     check_larger_group(Board, SourceRow-SourceCol, DestRow-DestCol).
 
 % valid_moves(+GameState, +Player, -ListOfMoves).
