@@ -1,7 +1,15 @@
 % utils.pl
-% read_*
-% print_*
+% read*
+% print*
+% invert
+% flatten
+% replace
 % translate
+
+
+:- use_module(library(between)).
+:- use_module(library(lists)).
+
 
 % read_number(-X)
 read_number(X) :-
@@ -9,8 +17,7 @@ read_number(X) :-
 
 read_number_aux(Acc, _, X) :-
     get_code(C),
-    C >= 48,
-    C =< 57,
+    between(48, 57, C),
     !,
     Acc1 is 10 * Acc + (C - 48),
     read_number_aux(Acc1, true, X).
@@ -18,15 +25,26 @@ read_number_aux(Acc, _, X) :-
 read_number_aux(X, true, X).
 
 
-% read_string(String, List)
-read_string(NamePlayer, List):-
+% read_string(-String)
+read_string(String) :-
+    read_string_aux([], String).
+
+read_string_aux(CharList, String) :-
     get_char(Char),
     Char \= '\n',
-    append(List, [Char], ListR),
-    read_string(NamePlayer, ListR).
+    append(CharList, [Char], NewCharList),
+    read_string_aux(NewCharList, String).
 
-read_string(NamePlayer, List):-
-    atom_chars(NamePlayer, List).
+read_string_aux(CharList, String) :-
+    atom_chars(String, CharList).
+
+
+% read_option(+Min, +Max, -Option)
+read_option(Min, Max, Option) :-
+    repeat,
+    read_number(Option),
+    between(Min, Max, Option),
+    !.
 
 
 % read_coordinates(-Position)
@@ -112,6 +130,33 @@ print_turn(Name) :-
     write(Name),
     write('!'),
     nl.
+
+% invert(+List, -Inverted)
+invert(List, Inverted) :-
+    invert_aux(List, [], Inverted).
+
+invert_aux([], Inverted, Inverted).
+
+invert_aux([H | T], Acc, Inverted) :-
+    invert_aux(T, [H | Acc], Inverted).
+
+% flatten(+NestedList, -FlatList)
+flatten(NestedList, FlatList) :-
+    flatten_aux(NestedList, [], FlatListInverted),
+    invert(FlatListInverted, FlatList).
+
+flatten_aux([], FlatList, FlatList).
+
+flatten_aux([H | T], Acc, FlatList) :-
+    invert(H, HInverted),
+    append(HInverted, Acc, Acc1),
+    flatten_aux(T, Acc1, FlatList).    
+
+
+% replace(+List, +Element, +Index, -NewList).
+replace(List, Element, Index, NewList) :-
+    nth0(Index, List, _, _L),
+    nth0(Index, NewList, Element, _L).
 
 
 % translate(?InternalRepresentation, ?ExternalRepresentation)
