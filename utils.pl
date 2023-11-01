@@ -75,27 +75,21 @@ read_string(NamePlayer, List):-
 coordinates(Row-Col) :-
     write('You do not have a valid move. Remove your piece from\n'),
     write('Row number: \n'),
-    repeat,
     read_number(Row),
     write('Column number: \n'),
-    repeat,
     read_number(Col).
 
 % coordinates(-SourcePosition, -DestPosition)
 coordinates(SourceRow-SourceCol, DestRow-DestCol) :-
     write('Move your piece from\n'),
     write('Row number: \n'),
-    repeat,
     read_number(SourceRow),
     write('Column number: \n'),
-    repeat,
     read_number(SourceCol),
     write('To: \n'),
     write('Row number: \n'),
-    repeat,
     read_number(DestRow),
     write('Column number: \n'),
-    repeat,
     read_number(DestCol).
 
 % translate(?Internal, ?External)

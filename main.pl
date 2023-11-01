@@ -104,5 +104,5 @@ game_play(Board-Player, NewBoard-NewPlayer) :-
     repeat,
     coordinates(Row-Col),
     replace_piece(Board, empty, Row-Col, NewBoard),
-    change_player(Player, NewPlayer),
-    !.
+    !,
+    change_player(Player, NewPlayer).
