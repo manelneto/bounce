@@ -185,8 +185,9 @@ can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
     check_larger_group(Board, SourceRow-SourceCol, DestRow-DestCol).
 
 
-% TODO ...
 
+% TODO ...
+% ha forma de fazer melhor ->findall de todas as posicoes e length da lista
 player_pieces_number(Board, Piece, N) :-
     flatten(Board, FlatBoard),
     player_pieces_number_aux(FlatBoard, Piece, 0, N).
