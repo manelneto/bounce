@@ -10,6 +10,7 @@ play :-
     get_name(NewPlayer),
     board_menu(BoardSize),
     create_all_board(BoardSize, Board),
+    !,
     game_loop(Board-1).
 
 % switch_char(?Char1, ?Char2)
