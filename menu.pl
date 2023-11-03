@@ -8,6 +8,7 @@
 
 
 % bounce/0
+% represents the beginning of the game 
 bounce :-
     write('----------------------\n'),
     write('Welcome to Bounce Game\n'),
@@ -15,6 +16,7 @@ bounce :-
 
 
 % initial_menu(-Option)
+% menu to find out what type of game it will be
 initial_menu(Option) :- 
     write('Select the game mode\n'),
     write('1 - Human vs Human\n'),
@@ -24,6 +26,7 @@ initial_menu(Option) :-
 
 
 % bot_menu(-Option)
+% menu to find out what bot will play
 bot_menu(Option) :-
     write('Select the bot type\n'),
     write('1 - Easy Bot\n'),
@@ -32,27 +35,29 @@ bot_menu(Option) :-
 
 
 % board_menu(-BoardSize)
+% menu to get the size of the board
 board_menu(BoardSize) :-
-    write('Board size (should be an even number between 4 and 10): '),
+    write('Board size (should be an even number between 4 and 10):\n'),
     repeat,
     read_option(4, 10, BoardSize),
     BoardSize mod 2 =:= 0,
     !.
 
 
-% get_color(+Player)
-get_color(Player):-
-    write('Select the color you would like to play\n'),
+% get_color(+Name, -Color)
+% menu to get the color of the players
+get_color(Name, Color):-
+    write('Select the color you would like to play, '),
+    write(Name),
+    write('?\n'),
     write('1 - Red\n'),
     write('2 - Blue\n'),
-    read_option(1, 2, Player).
+    read_option(1, 2, Color).
 
 
-% get_name(+Player)
-get_name(Player) :-
-    write('What is your name, player '),
-    write(Player),
-    write('?'),
+% get_name(-Name)
+% menu to get the name of the human players
+get_name(Name) :-
+    write('What is your name?'),
     nl,
-    read_string(Name),
-    asserta(player_name(Player, Name)).
+    read_string(Name).
