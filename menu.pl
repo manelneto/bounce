@@ -31,7 +31,8 @@ bot_menu(Option) :-
     write('Select the bot type\n'),
     write('1 - Easy Bot\n'),
     write('2 - Hard Bot\n'),
-    read_option(1, 2, Option).
+    write('2 - Hard Bot\n'),
+    read_option(1, 3, Option).
 
 
 % board_menu(-BoardSize)
