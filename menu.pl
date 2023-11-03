@@ -30,8 +30,8 @@ initial_menu(Option) :-
 bot_menu(Option) :-
     write('Select the bot type\n'),
     write('1 - Easy Bot\n'),
-    write('2 - Hard Bot\n'),
-    write('2 - Hard Bot\n'),
+    write('2 - Greedy Bot\n'),
+    write('3 - Hard Bot\n'),
     read_option(1, 3, Option).
 
 

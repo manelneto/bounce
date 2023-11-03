@@ -16,6 +16,27 @@ choose_move_easy_NoValid(Board-Player, Row-Col):-
     random_member(Row-Col, ListPositions).
 
 
+%
+choose_move_hard(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
+    valid_moves(Board-Player, Player, ValidMoves),
+    hard_bot(Board-Player, ValidMoves, ListValues),
+    find_max_value(ListValues, Index),
+    nth0(Index, ValidMoves, SourceRow-SourceCol-DestRow-DestCol).
+
+
+%
+choose_move_hard_NoValid(Board-Player, Row-Col) :-
+    player_piece(Player, Piece),
+    findall(Row-Col, piece(Board, Row-Col,Piece), ListPositions),
+    print(ListPositions),
+    hard_bot_NoValid(Board-Player, ListPositions, ListValues),
+    print(here),
+    find_max_value(ListValues, Index),
+    print(ListValues),
+    print(Index),
+    nth0(Index, ListPositions, Row-Col).
+
+
 % next_boards(+Board-Player, +ValidMoves, -NextBoards)
 % generates a list of all possible next boards given a list of valid moves
 next_boards(Board-Player, ValidMoves, NextBoards) :-
@@ -110,6 +131,13 @@ coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
     minimax(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
 
 
+% coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
+% gets the coordinates for an hard bot´s next move when there are valid moves
+coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
+    player_name(_, Player, 3),
+    choose_move_hard(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
+
+
 % coordinates_NoValid(+Board-Player, -Row-Col)
 % gets the input coordinates for an human player's next move when there are not valid moves
 coordinates_NoValid(_-Player, Row-Col) :-
@@ -129,6 +157,13 @@ coordinates_NoValid(Board-Player, Row-Col) :-
 coordinates_NoValid(Board-Player, Row-Col) :-
     player_name(_, Player, 2),
     minimax_NoValid(Board-Player, Row-Col).
+
+
+%coordinates_NoValid(+Board-Player, -Row-Col)
+% gets the coordinates for an hard bot´s next move when there are not valid moves
+coordinates_NoValid(Board-Player, Row-Col) :-
+    player_name(_, Player, 3),
+    choose_move_hard_NoValid(Board-Player, Row-Col).
 
 
 % get_all_positions(+Board-Player, -Positions)
@@ -181,3 +216,49 @@ value(Board-Player, Player, Value) :-
 
 
 
+hard_bot(Board-Player, ValidMoves, ListValues) :-
+    hard(Board-Player, ValidMoves, LValues),
+    invert(LValues, ListValues).
+
+hard(Board-Player, ValidMoves, LValues) :-
+    hard_aux(Board-Player, ValidMoves, [], LValues).
+
+hard_aux(_,[],LValues, LValues).
+hard_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, LValues) :-
+    player_piece(Player, Piece),
+    move_piece(Board, Piece, SourceRow-SourceCol, DestRow-DestCol, NewBoard), 
+    value(NewBoard-Player, Player, Value),
+    change_player(Player, NewPlayer),
+    minimax(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
+    !,
+    player_piece(NewPlayer, NewPiece),
+    move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
+    value(NewBoard1-NewPlayer, NewPlayer, Value1),
+    Value2 is Value - Value1,
+    hard_aux(Board-Player, T, [Value2 |Acc], LValues).
+    
+
+%
+hard_bot_NoValid(Board-Player, ListPositions, ListValues) :-
+    hard_NoValid(Board-Player, ListPositions, LValues),
+    print(LValues),
+    invert(LValues, ListValues).
+
+hard_NoValid(Board-Player, ListPositions, LValues) :-
+    hard_NoValid_aux(Board-Player, ListPositions, [], LValues).
+
+hard_NoValid_aux(_,[],LValues, LValues).
+hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
+    replace_piece(Board, empty, Row-Col, NewBoard),
+    print(NewBoard),
+    value(NewBoard-Player, Player, Value),
+    change_player(Player, NewPlayer),
+    minimax(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
+    !,
+    player_piece(NewPlayer, NewPiece),
+    move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
+    print(NewBoard1),
+    value(NewBoard1-NewPlayer, NewPlayer, Value1),
+    Value2 is Value - Value1,
+    print(Value2),
+    hard_aux(Board-Player, T, [Value2 |Acc], LValues).
