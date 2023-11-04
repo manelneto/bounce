@@ -1,4 +1,5 @@
 % utils.pl
+
 % read*
 % print*
 % invert
@@ -12,7 +13,7 @@
 
 
 % read_number(-X)
-% read an input number
+% reads an input number
 read_number(X) :-
     read_number_aux(0, false, X).
 
@@ -27,7 +28,7 @@ read_number_aux(X, true, X).
 
 
 % read_string(-String)
-% read an input string
+% reads an input string
 read_string(String) :-
     read_string_aux([], String).
 
@@ -43,7 +44,7 @@ read_string_aux(CharList, String) :-
 
 
 % read_option(+Min, +Max, -Option)
-% validate input options
+% reads and validates an input option
 read_option(Min, Max, Option) :-
     repeat,
     read_number(Option),
@@ -52,32 +53,34 @@ read_option(Min, Max, Option) :-
 
 
 % read_coordinates(-Position)
-% read input coordinates 
+% reads input coordinates 
 read_coordinates(Row-Col) :-
     write('You do not have a valid move. Remove your piece from...\n'),
     write('Row: '),
     read_number(Row),
     write('Column: '),
-    read_number(Col).
+    read_number(Col),
+    nl.
 
 
 % read_coordinates(-SourcePosition, -DestPosition)
-% read input coordinates (Source and Destination)
+% reads input coordinates (Source and Destination)
 read_coordinates(SourceRow-SourceCol, DestRow-DestCol) :-
     write('Move your piece from...\n'),
     write('Row: '),
     read_number(SourceRow),
     write('Column: '),
     read_number(SourceCol),
-    write('Move your piece to...\n'),
+    write('\nMove your piece to...\n'),
     write('Row: '),
     read_number(DestRow),
     write('Column: '),
-    read_number(DestCol).
+    read_number(DestCol),
+    nl.
 
 
 % print_header(+N, +HeaderSize)
-% print the header of the game
+% prints the header of the board
 print_header(N, HeaderSize) :-
     write('   '),
     print_header_aux(N, HeaderSize).
@@ -95,7 +98,7 @@ print_header_aux(N, HeaderSize) :-
 
 
 % print_board_line(+LineSize)
-% print a board line with an specific size
+% prints a board line with a specific size
 print_board_line(LineSize) :-
     write('   '),
     print_board_line_aux(LineSize).
@@ -111,7 +114,7 @@ print_board_line_aux(LineSize) :-
 
 
 % print_row(+Row)
-% print a board row
+% prints a board row
 print_row([]) :-
     nl.
 
@@ -124,8 +127,9 @@ print_row([H | T]) :-
 
 
 % print_board(+Board, +N)
-% print the board of the game
+% prints the board of the game
 print_board([], _).
+
 print_board([H | T], N) :-
     length(H, LineSize),
     print_board_line(LineSize),
@@ -135,7 +139,7 @@ print_board([H | T], N) :-
 
 
 % print_turn(+Name)
-% print the currently turn
+% prints the current turn
 print_turn(Name) :-
     nl,
     write('It is your turn, '),
@@ -145,7 +149,7 @@ print_turn(Name) :-
 
 
 % invert(+List, -Inverted)
-% invert the members of a list
+% inverts a list
 invert(List, Inverted) :-
     invert_aux(List, [], Inverted).
 
@@ -156,7 +160,7 @@ invert_aux([H | T], Acc, Inverted) :-
 
 
 % flatten(+NestedList, -FlatList)
-% flatten list
+% flattens a list
 flatten(NestedList, FlatList) :-
     flatten_aux(NestedList, [], FlatListInverted),
     invert(FlatListInverted, FlatList).
@@ -170,14 +174,14 @@ flatten_aux([H | T], Acc, FlatList) :-
 
 
 % replace(+List, +Element, +Index, -NewList)
-% replace an Element with Index of a List to a NewList
+% replaces the Index position of List with Element
 replace(List, Element, Index, NewList) :-
     nth0(Index, List, _, _L),
     nth0(Index, NewList, Element, _L).
 
 
 % translate(?InternalRepresentation, ?ExternalRepresentation)
-% represents the translation from internal representation to external representation
+% translates the internal representation of an element to its external representation
 translate(empty, ' ').
 translate(blue, 'B').
 translate(red, 'r').
