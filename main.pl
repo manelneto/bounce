@@ -96,14 +96,13 @@ game_over(Board-Player, Winner) :-
     piece(Board, Position, Piece),
     !,
     flood_fill(Board, [Position], Group),
-    all_positions(Board-Player, Positions),
+    all_positions(Board-Winner, Positions),
     length(Positions, N),
     length(Group, N).
 
 % value(+GameState, +Player, -Value) - TODO
 % calculates the board value using the number of pieces, groups and the length of the biggest group of a given player
 value(Board-Player, Player, Value) :-
-    player_piece(Player, Piece),
     all_positions(Board-Player, Positions),
     length(Positions, NumberPieces),
     list_groups(Board-Player, Positions, ListGroups),
