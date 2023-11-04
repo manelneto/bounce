@@ -28,8 +28,8 @@ play(1) :-
     start_human_human,
     board_menu(BoardSize),
     initial_state(BoardSize, GameState),
-    !,
     game_loop(GameState),
+    !,
     retractall(player_name(_, _, _)).
 
 
@@ -39,8 +39,8 @@ play(2) :-
     start_human_bot,
     board_menu(BoardSize),
     initial_state(BoardSize, GameState),
-    !,
     game_loop(GameState),
+    !,
     retractall(player_name(_, _, _)).
 
 
@@ -50,8 +50,8 @@ play(3) :-
     start_bot_bot,
     board_menu(BoardSize),
     initial_state(BoardSize, GameState),
-    !,
     game_loop(GameState),
+    !,
     retractall(player_name(_, _, _)).
 
 

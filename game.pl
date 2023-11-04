@@ -225,7 +225,6 @@ player_pieces_number(Board, Piece, N) :-
 % if the game is over, it prints the name of the winner and ends the loop
 game_loop(Board-Player) :-
     game_over(Board-Player, Winner),
-    !,
     player_name(Name, Winner, _),
     write(Name),
     write(' won!\n').

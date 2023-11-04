@@ -137,10 +137,12 @@ print_board([H | T], N) :-
 % print_turn(+Name)
 % print the currently turn
 print_turn(Name) :-
+    nl,
     write('It is your turn, '),
     write(Name),
     write('!\n'),
     nl.
+
 
 % invert(+List, -Inverted)
 % invert the members of a list
@@ -151,6 +153,7 @@ invert_aux([], Inverted, Inverted).
 
 invert_aux([H | T], Acc, Inverted) :-
     invert_aux(T, [H | Acc], Inverted).
+
 
 % flatten(+NestedList, -FlatList)
 % flatten list

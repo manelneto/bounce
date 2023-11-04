@@ -2,7 +2,7 @@
 
 
 % choose_move_easy(+Board-Player, -SourceRow-SourceCol-DestRow-DestCol)
-% chooses a random valid move for a player on a given board when there are valid moves
+% chooses a random valid move for an easy bot on a given board when there are valid moves
 choose_move_easy(Board-Player, SourceRow-SourceCol-DestRow-DestCol):- 
     valid_moves(Board-Player, Player, ListOfMoves),
     random_member(SourceRow-SourceCol-DestRow-DestCol, ListOfMoves).
@@ -16,7 +16,8 @@ choose_move_easy_NoValid(Board-Player, Row-Col):-
     random_member(Row-Col, ListPositions).
 
 
-%
+% choose_move_hard(+Board-Player, -SourceRow-SourceCol-DestRow-DestCol)
+% chooses a move for a hard bot on a given board when there are valid moves
 choose_move_hard(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
     valid_moves(Board-Player, Player, ValidMoves),
     hard_bot(Board-Player, ValidMoves, ListValues),
@@ -24,7 +25,8 @@ choose_move_hard(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
     nth0(Index, ValidMoves, SourceRow-SourceCol-DestRow-DestCol).
 
 
-%
+% choose_move_hard_NoValid(+Board-Player, -Row-Col)
+% chooses a valid move for a hard bot on a given board when there are not valid moves
 choose_move_hard_NoValid(Board-Player, Row-Col) :-
     player_piece(Player, Piece),
     findall(Row-Col, piece(Board, Row-Col,Piece), ListPositions),
@@ -60,9 +62,9 @@ next_boards_NoValid_aux(Board-Player, [Row-Col | T], Acc, NextBoards) :-
     next_boards_NoValid_aux(Board-Player, T, [NewBoard-Player | Acc], NextBoards).
 
 
-% minimax(+GameState, -BestNextGameState, +Player)
+% greedy(+GameState, -Move)
 % generates all possible next game states and uses the best/3 predicate to find the best one when there are valid moves
-minimax(Board-Player, Move) :-
+greedy(Board-Player, Move) :-
     valid_moves(Board-Player, Player, ValidMoves),
     next_boards(Board-Player, ValidMoves, NextGameStates),
     list_of_values(NextGameStates, ListValues),
@@ -72,9 +74,9 @@ minimax(Board-Player, Move) :-
     move(Board-Player, Move, BestBoard-NewPlayer).
 
 
-% minimax(+GameState, -BestNextGameState, +Player)
+% greedy_NoValid(+GameState, -Move)
 % generates all possible next game states and uses the best/3 predicate to find the best one when there are not valid moves
-minimax_NoValid(Board-Player, Move) :- %cut para se existirem varias boards e positions bons 
+greedy_NoValid(Board-Player, Move) :- %cut para se existirem varias boards e positions bons 
     player_piece(Player, Piece),
     findall(Row-Col, piece(Board, Row-Col,Piece), ListPositions),
     next_boards_NoValid(Board-Player, ListPositions, NextGameStates),
@@ -125,10 +127,10 @@ coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
 
 
 % coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
-% gets the coordinates for an hard bot´s next move when there are valid moves
+% gets the coordinates for a greedy bot´s next move when there are valid moves
 coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
     player_name(_, Player, 2),
-    minimax(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
+    greedy(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
 
 
 % coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
@@ -153,10 +155,10 @@ coordinates_NoValid(Board-Player, Row-Col) :-
 
 
 %coordinates_NoValid(+Board-Player, -Row-Col)
-% gets the coordinates for an hard bot´s next move when there are not valid moves
+% gets the coordinates for a greedy bot´s next move when there are not valid moves
 coordinates_NoValid(Board-Player, Row-Col) :-
     player_name(_, Player, 2),
-    minimax_NoValid(Board-Player, Row-Col).
+    greedy_NoValid(Board-Player, Row-Col).
 
 
 %coordinates_NoValid(+Board-Player, -Row-Col)
@@ -215,11 +217,15 @@ value(Board-Player, Player, Value) :-
     Value is (NumberPieces * -0.25) + (NumberGroups * -0.65) + (BiggerGroup * 0.10).
 
 
-
+% hard_bot(+Board-Player, +ValidMoves, -ListValues)
+% receives a list of values and invert it 
 hard_bot(Board-Player, ValidMoves, ListValues) :-
     hard(Board-Player, ValidMoves, LValues),
     invert(LValues, ListValues).
 
+
+% hard(+Board-Player, +ValidMoves, -LValues)
+% calculates the list of values for each board with one play from the player 1 and 2 when there are valid moves
 hard(Board-Player, ValidMoves, LValues) :-
     hard_aux(Board-Player, ValidMoves, [], LValues).
 
@@ -229,7 +235,7 @@ hard_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, LValues) 
     move_piece(Board, Piece, SourceRow-SourceCol, DestRow-DestCol, NewBoard), 
     value(NewBoard-Player, Player, Value),
     change_player(Player, NewPlayer),
-    minimax(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
+    greedy(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
     !,
     player_piece(NewPlayer, NewPiece),
     move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
@@ -238,27 +244,42 @@ hard_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, LValues) 
     hard_aux(Board-Player, T, [Value2 |Acc], LValues).
     
 
-%
+% hard_bot_NoValid(+Board-Player, +ValidMoves, -ListValues)
+% receives a list of values and invert it 
 hard_bot_NoValid(Board-Player, ListPositions, ListValues) :-
     hard_NoValid(Board-Player, ListPositions, LValues),
-    print(LValues),
     invert(LValues, ListValues).
 
+
+% hard(+Board-Player, +ListPositions, -LValues)
+% calculates the list of values for each board with one play from the player 1 and 2 when there are not valid moves
 hard_NoValid(Board-Player, ListPositions, LValues) :-
     hard_NoValid_aux(Board-Player, ListPositions, [], LValues).
 
 hard_NoValid_aux(_,[],LValues, LValues).
 hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
     replace_piece(Board, empty, Row-Col, NewBoard),
-    print(NewBoard),
     value(NewBoard-Player, Player, Value),
     change_player(Player, NewPlayer),
-    minimax(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
+    valid_moves(NewBoard-NewPlayer, NewPlayer, NewValidMoves),
+    length(NewValidMoves, N),
+    N =:= 0,
+    greedy_NoValid(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol),
+    !,
+    replace_piece(NewBoard, empty, MoveSourceRow-MoveSourceCol, NewBoard1),
+    value(NewBoard1-NewPlayer, NewPlayer, Value1),
+    Value2 is Value - Value1,
+    hard_NoValid_aux(Board-Player, T, [Value2 |Acc], LValues).
+
+hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
+    replace_piece(Board, empty, Row-Col, NewBoard),
+    value(NewBoard-Player, Player, Value),
+    change_player(Player, NewPlayer),
+    greedy(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
     !,
     player_piece(NewPlayer, NewPiece),
     move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
-    print(NewBoard1),
     value(NewBoard1-NewPlayer, NewPlayer, Value1),
     Value2 is Value - Value1,
-    print(Value2),
-    hard_aux(Board-Player, T, [Value2 |Acc], LValues).
+    hard_NoValid_aux(Board-Player, T, [Value2 |Acc], LValues).
+
