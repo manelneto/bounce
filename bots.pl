@@ -225,7 +225,7 @@ hard_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, LValues) 
     player_piece(NewPlayer, NewPiece),
     move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
     value(NewBoard1-NewPlayer, NewPlayer, Value1),
-    Value2 is Value - Value1,
+    Value2 is (2 * Value) - Value1,
     hard_aux(Board-Player, T, [Value2 |Acc], LValues).
     
 
@@ -253,7 +253,7 @@ hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
     !,
     replace_piece(NewBoard, empty, MoveSourceRow-MoveSourceCol, NewBoard1),
     value(NewBoard1-NewPlayer, NewPlayer, Value1),
-    Value2 is Value - Value1,
+    Value2 is (2 * Value) - Value1,
     hard_NoValid_aux(Board-Player, T, [Value2 |Acc], LValues).
 
 hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
@@ -265,5 +265,5 @@ hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
     player_piece(NewPlayer, NewPiece),
     move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
     value(NewBoard1-NewPlayer, NewPlayer, Value1),
-    Value2 is Value - Value1,
+    Value2 is (2 * Value) - Value1,
     hard_NoValid_aux(Board-Player, T, [Value2 |Acc], LValues).
