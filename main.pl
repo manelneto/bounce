@@ -115,22 +115,28 @@ value(Board-Player, Player, Value) :-
 % choose_move(+GameState, +Player, +Level, -Move)
 % chooses a move for the bot, depending on the level of difficulty
 choose_move(Board-Player, Player, 1, Move) :-
-    choose_move_easy(Board-Player, Move).
+    choose_move_easy(Board-Player, Move),
+    print_move(Move).
 
 choose_move(Board-Player, Player, 2, Move) :-
-    choose_move_greedy(Board-Player, Move).
+    choose_move_greedy(Board-Player, Move),
+    print_move(Move).
 
 choose_move(Board-Player, Player, 3, Move) :-
-    choose_move_hard(Board-Player, Move).
+    choose_move_hard(Board-Player, Move),
+    print_move(Move).
 
 
 % choose_piece(+GameState, +Player, +Level, -Position)
 % chooses a piece's position for the bot, depending on the level of difficulty
 choose_piece(Board-Player, Player, 1, Position) :-
-    choose_piece_easy(Board-Player, Position).
+    choose_piece_easy(Board-Player, Position),
+    print_piece(Position).
 
 choose_piece(Board-Player, Player, 2, Position) :-
-    choose_piece_greedy(Board-Player, Position).
+    choose_piece_greedy(Board-Player, Position),
+    print_piece(Position).
 
 choose_piece(Board-Player, Player, 3, Position) :-
-    choose_piece_hard(Board-Player, Position).
+    choose_piece_hard(Board-Player, Position),
+    print_piece(Position).

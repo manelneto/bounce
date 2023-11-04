@@ -82,6 +82,7 @@ read_coordinates(SourceRow-SourceCol, DestRow-DestCol) :-
 % print_header(+N, +HeaderSize)
 % prints the header of the board
 print_header(N, HeaderSize) :-
+    nl,
     write('   '),
     print_header_aux(N, HeaderSize).
 
@@ -153,14 +154,14 @@ print_position(Row-Col) :-
 print_move(SourceRow-SourceCol-DestRow-DestCol) :-
     write('Moved piece: '),
     print_position(SourceRow-SourceCol),    
-    print(' ----> '),
+    print(' --> '),
     print_position(DestRow-DestCol),
     nl.
 
 
-% print_removal(+Position)
+% print_piece(+Position)
 % prints the removal of a piece
-print_move(Position) :-
+print_piece(Position) :-
     print('Removed piece: '),
     print_position(Position),    
     nl.

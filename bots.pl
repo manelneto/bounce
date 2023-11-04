@@ -249,7 +249,7 @@ hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
     valid_moves(NewBoard-NewPlayer, NewPlayer, NewValidMoves),
     length(NewValidMoves, N),
     N =:= 0,
-    greedy_NoValid(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol),
+    choose_piece_greedy(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol),
     !,
     replace_piece(NewBoard, empty, MoveSourceRow-MoveSourceCol, NewBoard1),
     value(NewBoard1-NewPlayer, NewPlayer, Value1),
