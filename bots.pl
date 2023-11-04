@@ -80,17 +80,15 @@ choose_move_hard(Board-Player, Move) :-
 
 % choose_piece_easy(+GameState, -Position)
 % chooses a random piece's position for an easy bot to remove
-choose_piece_easy(Board-Player, Position) :- 
-    player_piece(Player, Piece),
-    findall(Row-Col, piece(Board, Row-Col, Piece), ValidPositions),
+choose_piece_easy(GameState, Position) :- 
+    all_positions(GameState, ValidPositions),
     random_member(Position, ValidPositions).
 
 
 % choose_piece_greedy(+GameState, -Position)
 % chooses a piece's position for a greedy bot to remove by generating all possible next game states and finding the best one
 choose_piece_greedy(Board-Player, Position) :- % TODO - cut para se existirem varias boards e positions bons 
-    player_piece(Player, Piece),
-    findall(Row-Col, piece(Board, Row-Col, Piece), ValidPositions),
+    all_positions(Board-Player, ValidPositions),
     next_boards_after_removal(Board-Player, ValidPositions, NextGameStates),
     list_of_values(NextGameStates, ListOfValues),
     max_value_index(ListOfValues, Index),
@@ -101,8 +99,7 @@ choose_piece_greedy(Board-Player, Position) :- % TODO - cut para se existirem va
 % choose_piece_hard(+GameState, -Position)
 % chooses a piece's position for a hard bot to remove
 choose_piece_hard(Board-Player, Position) :-
-    player_piece(Player, Piece),
-    findall(Row-Col, piece(Board, Row-Col, Piece), ValidPositions),
+    all_positions(Board-Player, ValidPositions),
     hard_bot_NoValid(Board-Player, ValidPositions, ListOfValues), % TODO
     max_value_index(ListOfValues, Index),
     nth0(Index, ValidPositions, Position).
