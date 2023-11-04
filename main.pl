@@ -105,10 +105,10 @@ game_over(Board-Player, Winner) :-
 value(Board-Player, Player, Value) :-
     all_positions(Board-Player, Positions),
     length(Positions, NumberPieces),
-    list_groups(Board-Player, Positions, ListGroups),
+    all_groups(Board, Positions, ListGroups),
     sort(ListGroups, SortedListGroups),
     length(SortedListGroups, NumberGroups),
-    length_of_bigger_group(SortedListGroups, BiggerGroup),
+    biggest_group_length(SortedListGroups, BiggerGroup),
     Value is (NumberPieces * -0.25) + (NumberGroups * -0.65) + (BiggerGroup * 0.10).
 
 

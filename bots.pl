@@ -139,35 +139,6 @@ list_of_values([Board-Player | T], [Value | ListOfValues]) :-
     list_of_values(T, ListOfValues).
 
 
-% list_groups(+Board-Player, +Positions, -ListGroups)
-% gets all groups of pieces of a given player using his pieces positions
-list_groups(Board-Player, Positions, ListGroups) :-
-    list_groups_aux(Board-Player, Positions, [], ListGroups).
-
-list_groups_aux(_, [], ListGroups, ListGroups).
-list_groups_aux(Board-Player, [H|T], Acc, ListGroups) :-
-    flood_fill(Board,[H], Filled),
-    sort(Filled, FilledSorted),
-    append([FilledSorted], Acc, Acc1),
-    list_groups_aux(Board-Player, T, Acc1, ListGroups).
-
-
-% length_of_bigger_group(+SortedListGroups, -BiggerGroup)
-% gets the length of the biggest group of pieces
-length_of_bigger_group([],0).
-length_of_bigger_group([H|T], BiggerGroup) :-
-    length_of_bigger_group(T, Max),
-    length(H, N),
-    N > Max,
-    BiggerGroup is N.
-    
-length_of_bigger_group([H|T], BiggerGroup) :-
-    length_of_bigger_group(T, Max),
-    length(H, N),
-    N =< Max,
-    BiggerGroup is Max.
-
-
 % hard_bot(+Board-Player, +ValidMoves, -ListValues)
 % receives a list of values and invert it 
 hard_bot(Board-Player, ValidMoves, ListValues) :-

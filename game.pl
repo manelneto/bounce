@@ -170,7 +170,7 @@ neighbor(Board, Position, NeighborPosition) :-
     same_color(Board, Position, NeighborPosition).
 
 
-% flood_fill(+GameState, +ToFill, -Filled)
+% flood_fill(+Board, +ToFill, -Filled)
 % uses the flood fill algorithm to find all connected positions of a given piece
 flood_fill(Board, ToFill, Filled) :-
     flood_fill_aux(Board, ToFill, [], Filled).
@@ -210,6 +210,36 @@ can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
 all_positions(Board-Player, Positions) :-
     player_piece(Player, Piece),
     findall(Position, piece(Board, Position, Piece), Positions).
+
+
+% all_groups(+Board, +Positions, -ListOfGroups)
+% finds all groups of a given player from its pieces on a board
+all_groups(Board, Positions, ListOfGroups) :-
+    all_groups_aux(Board, Positions, [], ListOfGroups).
+
+all_groups_aux(_, [], ListGroups, ListGroups).
+
+all_groups_aux(Board, [H | T], Acc, ListOfGroups) :-
+    flood_fill(Board, [H], Filled),
+    sort(Filled, FilledSorted),
+    append([FilledSorted], Acc, Acc1),
+    all_groups_aux(Board, T, Acc1, ListOfGroups).
+
+
+% biggest_group_length(+ListOfGroups, -MaxLength)
+% gets the length of the biggest group of pieces
+biggest_group_length([], 0).
+biggest_group_length([H | T], MaxLength) :-
+    biggest_group_length(T, TailMax),
+    length(H, N),
+    N > TailMax,
+    MaxLength is N.
+    
+biggest_group_length([H | T], MaxLength) :-
+    biggest_group_length(T, TailMax),
+    length(H, N),
+    N =< TailMax,
+    MaxLength is TailMax.
 
 
 % game_loop(+GameState)
