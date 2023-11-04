@@ -5,9 +5,6 @@
 % get*
 
 
-:- consult(utils).
-
-
 % bounce/0
 % represents the beginning of the game 
 bounce :-

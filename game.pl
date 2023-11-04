@@ -272,8 +272,8 @@ start_human_human :-
     get_color(Name, Color),
     change_player(Color, NewColor),
     get_name(NewName),
-    asserta(player_name(Name, Color, human)),
-    asserta(player_name(NewName, NewColor, human)).
+    asserta(player_name(Name, Color, 0)),
+    asserta(player_name(NewName, NewColor, 0)).
 
 
 % start_human_bot/0
@@ -282,7 +282,7 @@ start_human_bot :-
     get_name(Name),
     get_color(Name, Color),
     change_player(Color, NewColor),
-    asserta(player_name(Name, Color, human)),
+    asserta(player_name(Name, Color, 0)),
     bot_menu(Difficulty),
     bot_difficulty(Difficulty, BotName),
     asserta(player_name(BotName, NewColor, Difficulty)).

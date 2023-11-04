@@ -1,50 +1,138 @@
+% bots.pl
+
+% bot*
+% *coordinates
+% choose*
+
+
 :- use_module(library(random)).
 
 
-%
+% bot_difficulty(?Difficulty, ?Name)
+% maps a bot's difficulty to its name
 bot_difficulty(1, 'Easy Bot').
 bot_difficulty(2, 'Greedy Bot').
 bot_difficulty(3, 'Hard Bot').
 
+% bot_color(?Bot, ?Color)
+% maps a bot's to its color
 bot_color(1, ' (red)').
 bot_color(2, ' (blue)').
 
-% choose_move_easy(+Board-Player, -SourceRow-SourceCol-DestRow-DestCol)
-% chooses a random valid move for an easy bot on a given board when there are valid moves
-choose_move_easy(Board-Player, SourceRow-SourceCol-DestRow-DestCol):- 
-    valid_moves(Board-Player, Player, ListOfMoves),
-    random_member(SourceRow-SourceCol-DestRow-DestCol, ListOfMoves).
+
+% move_coordinates(+GameState -SourcePosition, -DestPosition)
+% gets the input coordinates for a human's next move
+move_coordinates(_-Player, SourcePosition, DestPosition) :-
+    player_name(_, Player , 0),
+    read_coordinates(SourcePosition, DestPosition).
 
 
-% choose_move_easy_NoValid(+Board-Player, -Row-Col)
-% chooses a random valid move for a player on a given board when there are not valid moves
-choose_move_easy_NoValid(Board-Player, Row-Col):- 
-    player_piece(Player, Piece),
-    findall(Row-Col, piece(Board, Row-Col,Piece), ListPositions),
-    random_member(Row-Col, ListPositions).
+% move_coordinates(+GameState -SourcePosition, -DestPosition)
+% gets the coordinates for a bot's next move
+move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
+    player_name(_, Player, Level),
+    Level > 0,
+    choose_move(Board-Player, Player, Level, SourceRow-SourceCol-DestRow-DestCol).
 
 
-% choose_move_hard(+Board-Player, -SourceRow-SourceCol-DestRow-DestCol)
-% chooses a move for a hard bot on a given board when there are valid moves
-choose_move_hard(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
+% piece_coordinates(+GameState, -Position)
+% gets the input coordinates for a human's piece removal
+piece_coordinates(_-Player, Position) :-
+    player_name(_, Player , 0),
+    read_coordinates(Position).
+
+
+% piece_coordinates(+GameState, -Position)
+% gets the input coordinates for a bot's piece removal
+piece_coordinates(Board-Player, Position) :-
+    player_name(_, Player , Level),
+    Level > 0,
+    choose_piece(Board-Player, Player, Level, Position).
+
+
+% choose_move_easy(+GameState, -Move)
+% chooses a random valid move for an easy bot
+choose_move_easy(Board-Player, Move) :- 
     valid_moves(Board-Player, Player, ValidMoves),
-    hard_bot(Board-Player, ValidMoves, ListValues),
-    find_max_value(ListValues, Index),
-    nth0(Index, ValidMoves, SourceRow-SourceCol-DestRow-DestCol).
+    random_member(Move, ValidMoves).
 
 
-% choose_move_hard_NoValid(+Board-Player, -Row-Col)
-% chooses a valid move for a hard bot on a given board when there are not valid moves
-choose_move_hard_NoValid(Board-Player, Row-Col) :-
+% choose_move_greedy(+GameState, -Move)
+% chooses a valid move for a greedy bot by generating all possible next game states and finding the best one
+choose_move_greedy(Board-Player, Move) :-
+    valid_moves(Board-Player, Player, ValidMoves),
+    next_boards(Board-Player, ValidMoves, NextGameStates),
+    list_of_values(NextGameStates, Values),
+    max_value_index(Values, Index),
+    nth0(Index, NextGameStates, BestBoard-_),
+    change_player(Player, NewPlayer),
+    move(Board-Player, Move, BestBoard-NewPlayer).
+
+
+% choose_move_hard(+GameState, -Move)
+% chooses a valid move for a hard bot
+choose_move_hard(Board-Player, Move) :-
+    valid_moves(Board-Player, Player, ValidMoves),
+    hard_bot(Board-Player, ValidMoves, Values),
+    max_value_index(Values, Index),
+    nth0(Index, ValidMoves, Move).
+
+
+% choose_piece_easy(+GameState, -Position)
+% chooses a random piece's position for an easy bot to remove
+choose_piece_easy(Board-Player, Position) :- 
     player_piece(Player, Piece),
-    findall(Row-Col, piece(Board, Row-Col,Piece), ListPositions),
-    print(ListPositions),
-    hard_bot_NoValid(Board-Player, ListPositions, ListValues),
-    print(here),
-    find_max_value(ListValues, Index),
-    print(ListValues),
-    print(Index),
-    nth0(Index, ListPositions, Row-Col).
+    findall(Row-Col, piece(Board, Row-Col, Piece), ValidPositions),
+    random_member(Position, ValidPositions).
+
+
+% choose_piece_greedy(+GameState, -Position)
+% chooses a piece's position for a greedy bot to remove by generating all possible next game states and finding the best one
+choose_piece_greedy(Board-Player, Position) :- % TODO - cut para se existirem varias boards e positions bons 
+    player_piece(Player, Piece),
+    findall(Row-Col, piece(Board, Row-Col, Piece), ValidPositions),
+    next_boards_NoValid(Board-Player, ValidPositions, NextGameStates), % TODO
+    list_of_values(NextGameStates, Values),
+    max_value_index(Values, Index),
+    nth0(Index, NextGameStates, BestBoard-_),
+    replace_piece(Board, empty, Position, BestBoard).
+
+
+% choose_piece_hard(+GameState, -Position)
+% chooses a piece's position for a hard bot to remove
+choose_piece_hard(Board-Player, Position) :-
+    player_piece(Player, Piece),
+    findall(Row-Col, piece(Board, Row-Col, Piece), ValidPositions),
+    hard_bot_NoValid(Board-Player, ValidPositions, Values), % TODO
+    max_value_index(Values, Index),
+    nth0(Index, ValidPositions, Position).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 % next_boards(+Board-Player, +ValidMoves, -NextBoards)
@@ -70,110 +158,12 @@ next_boards_NoValid_aux(Board-Player, [Row-Col | T], Acc, NextBoards) :-
     next_boards_NoValid_aux(Board-Player, T, [NewBoard-Player | Acc], NextBoards).
 
 
-% greedy(+GameState, -Move)
-% generates all possible next game states and uses the best/3 predicate to find the best one when there are valid moves
-greedy(Board-Player, Move) :-
-    valid_moves(Board-Player, Player, ValidMoves),
-    next_boards(Board-Player, ValidMoves, NextGameStates),
-    list_of_values(NextGameStates, ListValues),
-    find_max_value(ListValues, Index),
-    nth0(Index, NextGameStates, BestBoard-_),
-    change_player(Player, NewPlayer),
-    move(Board-Player, Move, BestBoard-NewPlayer).
-
-
-% greedy_NoValid(+GameState, -Move)
-% generates all possible next game states and uses the best/3 predicate to find the best one when there are not valid moves
-greedy_NoValid(Board-Player, Move) :- %cut para se existirem varias boards e positions bons 
-    player_piece(Player, Piece),
-    findall(Row-Col, piece(Board, Row-Col,Piece), ListPositions),
-    next_boards_NoValid(Board-Player, ListPositions, NextGameStates),
-    list_of_values(NextGameStates, ListValues),
-    find_max_value(ListValues, Index),
-    nth0(Index, NextGameStates, BestBoard-_),
-    replace_piece(Board, empty, Move, BestBoard).
-
-
 % list_of_values(+NextGameStates, -ListValues)
 % gets a list with the value for each NextGameStates
 list_of_values([],[]).
 list_of_values([Board-Player|T], [Value | ListValues]) :-
     value(Board-Player, Player, Value),
     list_of_values(T, ListValues).
-
-
-% max_list_values(+List, -Max)
-% finds out the the maximum value of a list
-max_list_values([Max], Max).
-max_list_values([H|T], H):-
-    max_list_values(T, Max),
-    H > Max.
-max_list_values([H|T], Max):-
-    max_list_values(T, Max),
-    H =< Max.
-
-
-% find_max_value(+ListValues, -Index)
-% finds out the index of the maximum value of a list
-find_max_value(ListValues, Index) :-
-    max_list_values(ListValues, Max),
-    nth0(Index, ListValues, Max).
-
-
-% coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
-% gets the input coordinates for an human player's next move when there are valid moves
-move_coordinates(_-Player, SourceRow-SourceCol, DestRow-DestCol) :-
-    player_name(_, Player , human),
-    read_coordinates(SourceRow-SourceCol, DestRow-DestCol).
-
-
-% coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
-% gets the coordinates for an easy bot´s next move when there are valid moves
-move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
-    player_name(_, Player , 1),
-    choose_move_easy(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
-
-
-% coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
-% gets the coordinates for a greedy bot´s next move when there are valid moves
-move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
-    player_name(_, Player, 2),
-    greedy(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
-
-
-% coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
-% gets the coordinates for an hard bot´s next move when there are valid moves
-move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
-    player_name(_, Player, 3),
-    choose_move_hard(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
-
-
-% coordinates_NoValid(+Board-Player, -Row-Col)
-% gets the input coordinates for an human player's next move when there are not valid moves
-piece_coordinates(_-Player, Row-Col) :-
-    player_name(_, Player , human),
-    read_coordinates(Row-Col).
-
-
-% coordinates_NoValid(+Board-Player, -Row-Col)
-% gets the coordinates for an easy bot´s next move when there are not valid moves
-piece_coordinates(Board-Player, Row-Col) :-
-    player_name(_, Player , 1),
-    choose_move_easy_NoValid(Board-Player, Row-Col).
-
-
-%coordinates_NoValid(+Board-Player, -Row-Col)
-% gets the coordinates for a greedy bot´s next move when there are not valid moves
-piece_coordinates(Board-Player, Row-Col) :-
-    player_name(_, Player, 2),
-    greedy_NoValid(Board-Player, Row-Col).
-
-
-%coordinates_NoValid(+Board-Player, -Row-Col)
-% gets the coordinates for an hard bot´s next move when there are not valid moves
-piece_coordinates(Board-Player, Row-Col) :-
-    player_name(_, Player, 3),
-    choose_move_hard_NoValid(Board-Player, Row-Col).
 
 
 % get_all_positions(+Board-Player, -Positions)
@@ -212,19 +202,6 @@ length_of_bigger_group([H|T], BiggerGroup) :-
     BiggerGroup is Max.
 
 
-% value(+GameState, +Player, -Value)
-% calculates the board value using the number of pieces, groups and the length of the biggest group of a given player
-value(Board-Player, Player, Value) :-
-    player_piece(Player, Piece),
-    player_pieces_number(Board, Piece, NumberPieces),
-    get_all_positions(Board-Player, Positions),
-    list_groups(Board-Player, Positions, ListGroups),
-    sort(ListGroups, SortedListGroups),
-    length(SortedListGroups, NumberGroups),
-    length_of_bigger_group(SortedListGroups, BiggerGroup),
-    Value is (NumberPieces * -0.25) + (NumberGroups * -0.65) + (BiggerGroup * 0.10).
-
-
 % hard_bot(+Board-Player, +ValidMoves, -ListValues)
 % receives a list of values and invert it 
 hard_bot(Board-Player, ValidMoves, ListValues) :-
@@ -243,7 +220,7 @@ hard_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, LValues) 
     move_piece(Board, Piece, SourceRow-SourceCol, DestRow-DestCol, NewBoard), 
     value(NewBoard-Player, Player, Value),
     change_player(Player, NewPlayer),
-    greedy(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
+    choose_move_greedy(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
     !,
     player_piece(NewPlayer, NewPiece),
     move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
@@ -283,11 +260,10 @@ hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
     replace_piece(Board, empty, Row-Col, NewBoard),
     value(NewBoard-Player, Player, Value),
     change_player(Player, NewPlayer),
-    greedy(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
+    choose_move_greedy(NewBoard-NewPlayer, MoveSourceRow-MoveSourceCol-MoveDestRow-MoveDestCol),
     !,
     player_piece(NewPlayer, NewPiece),
     move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
     value(NewBoard1-NewPlayer, NewPlayer, Value1),
     Value2 is Value - Value1,
     hard_NoValid_aux(Board-Player, T, [Value2 |Acc], LValues).
-

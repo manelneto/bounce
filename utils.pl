@@ -3,7 +3,7 @@
 % read*
 % print*
 % invert
-% flatten
+% max*
 % replace
 % translate
 
@@ -138,6 +138,34 @@ print_board([H | T], N) :-
     print_board(T, N1).
 
 
+% print_position(+Position)
+% prints a position
+print_position(Row-Col) :-
+    write('('),
+    write(Row),
+    write(', '),
+    write(Col),
+    write(')').
+
+
+% print_move(+Move)
+% prints a move
+print_move(SourceRow-SourceCol-DestRow-DestCol) :-
+    write('Moved piece: '),
+    print_position(SourceRow-SourceCol),    
+    print(' ----> '),
+    print_position(DestRow-DestCol),
+    nl.
+
+
+% print_removal(+Position)
+% prints the removal of a piece
+print_move(Position) :-
+    print('Removed piece: '),
+    print_position(Position),    
+    nl.
+
+
 % print_turn(+Name)
 % prints the current turn
 print_turn(Name) :-
@@ -159,18 +187,24 @@ invert_aux([H | T], Acc, Inverted) :-
     invert_aux(T, [H | Acc], Inverted).
 
 
-% flatten(+NestedList, -FlatList)
-% flattens a list
-flatten(NestedList, FlatList) :-
-    flatten_aux(NestedList, [], FlatListInverted),
-    invert(FlatListInverted, FlatList).
+% max_value(+List, -Max)
+% finds the the maximum value of a list
+max_value([Max], Max).
 
-flatten_aux([], FlatList, FlatList).
+max_value([H | T], H):-
+    max_value(T, Max),
+    H > Max.
 
-flatten_aux([H | T], Acc, FlatList) :-
-    invert(H, HInverted),
-    append(HInverted, Acc, Acc1),
-    flatten_aux(T, Acc1, FlatList).    
+max_value([H | T], Max):-
+    max_value(T, Max),
+    H =< Max.
+
+
+% max_value_index(+List, -Index)
+% finds the index of the maximum value of a list
+max_value_index(List, Index) :-
+    max_value(List, Max),
+    nth0(Index, List, Max).
 
 
 % replace(+List, +Element, +Index, -NewList)
