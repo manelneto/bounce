@@ -23,14 +23,14 @@ bot_color(2, ' (blue)').
 % move_coordinates(+GameState -SourcePosition, -DestPosition)
 % gets the input coordinates for a human's next move
 move_coordinates(_-Player, SourcePosition, DestPosition) :-
-    player_name(_, Player , 0),
+    player_attributes(_, Player , 0),
     read_coordinates(SourcePosition, DestPosition).
 
 
 % move_coordinates(+GameState -SourcePosition, -DestPosition)
 % gets the coordinates for a bot's next move
 move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
-    player_name(_, Player, Level),
+    player_attributes(_, Player, Level),
     Level > 0,
     choose_move(Board-Player, Player, Level, SourceRow-SourceCol-DestRow-DestCol).
 
@@ -38,14 +38,14 @@ move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
 % piece_coordinates(+GameState, -Position)
 % gets the input coordinates for a human's piece removal
 piece_coordinates(_-Player, Position) :-
-    player_name(_, Player , 0),
+    player_attributes(_, Player , 0),
     read_coordinates(Position).
 
 
 % piece_coordinates(+GameState, -Position)
 % gets the input coordinates for a bot's piece removal
 piece_coordinates(Board-Player, Position) :-
-    player_name(_, Player , Level),
+    player_attributes(_, Player , Level),
     Level > 0,
     choose_piece(Board-Player, Player, Level, Position).
 

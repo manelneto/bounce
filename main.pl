@@ -23,7 +23,7 @@ play :-
     bounce,
     initial_menu(GameMode),
     play(GameMode),
-    retractall(player_name(_, _, _)).
+    retractall(player_attributes(_, _, _)).
 
 
 % play(+GameMode)
@@ -63,7 +63,7 @@ display_game(Board-Player) :-
     print_header(0, BoardSize),
     print_board(Board, 0),
     print_board_line(BoardSize),
-    player_name(Name, Player, _),
+    player_attributes(Name, Player, _),
     print_turn(Name).
 
 

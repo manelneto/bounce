@@ -4,6 +4,11 @@
 :- consult(utils).
 
 
+% player_attributes(?Name, ?Player, ?Difficulty)
+% maps a player to its attributes (name and difficulty)
+:- dynamic player_attributes/3.
+
+
 % change_color(?Color, ?NewColor)
 % changes the color
 change_color(blue, red).
@@ -251,7 +256,7 @@ game_loop(Board-Player) :-
     print_header(0, BoardSize),
     print_board(Board, 0),
     print_board_line(BoardSize),
-    player_name(Name, Winner, _),
+    player_attributes(Name, Winner, _),
     nl,
     write(Name),
     write(' won!\n').
@@ -296,8 +301,8 @@ start_human_human :-
     get_color(Name, Color),
     change_player(Color, NewColor),
     get_name(NewName),
-    asserta(player_name(Name, Color, 0)),
-    asserta(player_name(NewName, NewColor, 0)).
+    asserta(player_attributes(Name, Color, 0)),
+    asserta(player_attributes(NewName, NewColor, 0)).
 
 
 % start_human_bot/0
@@ -306,10 +311,10 @@ start_human_bot :-
     get_name(Name),
     get_color(Name, Color),
     change_player(Color, NewColor),
-    asserta(player_name(Name, Color, 0)),
+    asserta(player_attributes(Name, Color, 0)),
     bot_menu(Difficulty),
     bot_difficulty(Difficulty, BotName),
-    asserta(player_name(BotName, NewColor, Difficulty)).
+    asserta(player_attributes(BotName, NewColor, Difficulty)).
 
 
 % start_bot_bot/0
@@ -321,9 +326,9 @@ start_bot_bot :-
     bot_difficulty(Difficulty, BotName),
     bot_color(Color, BotColor),
     atom_concat(BotName, BotColor, Name),
-    asserta(player_name(Name, Color, Difficulty)),
+    asserta(player_attributes(Name, Color, Difficulty)),
     bot_menu(NewDifficulty),
     bot_difficulty(NewDifficulty, NewBotName),
     bot_color(NewColor, NewBotColor),
     atom_concat(NewBotName, NewBotColor, NewName),
-    asserta(player_name(NewName, NewColor, NewDifficulty)).
+    asserta(player_attributes(NewName, NewColor, NewDifficulty)).
