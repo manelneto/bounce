@@ -205,17 +205,11 @@ can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
     check_larger_group(Board, SourceRow-SourceCol, DestRow-DestCol).
 
 
-% find_all_positions(+Board, +Piece, -ListPositions)
-% finds all positions of a given piece on the board
-find_all_positions(Board, Piece, ListPositions) :-
-    findall(Row-Col, piece(Board, Row-Col, Piece), ListPositions).
-
-
-% player_pieces_number(+Board, +Piece, -N)
-% counts the number of a given piece on the board
-player_pieces_number(Board, Piece, N) :-
-    findall(Row-Col, piece(Board, Row-Col,Piece), ListPositions),
-    length(ListPositions, N).
+% all_positions(+GameState, -Positions)
+% finds all pieces' positions for a given player on a board
+all_positions(Board-Player, Positions) :-
+    player_piece(Player, Piece),
+    findall(Position, piece(Board, Position, Piece), Positions).
 
 
 % game_loop(+GameState)

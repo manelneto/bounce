@@ -62,8 +62,8 @@ choose_move_easy(Board-Player, Move) :-
 choose_move_greedy(Board-Player, Move) :-
     valid_moves(Board-Player, Player, ValidMoves),
     next_boards(Board-Player, ValidMoves, NextGameStates),
-    list_of_values(NextGameStates, Values),
-    max_value_index(Values, Index),
+    list_of_values(NextGameStates, ListOfValues),
+    max_value_index(ListOfValues, Index),
     nth0(Index, NextGameStates, BestBoard-_),
     change_player(Player, NewPlayer),
     move(Board-Player, Move, BestBoard-NewPlayer).
@@ -73,8 +73,8 @@ choose_move_greedy(Board-Player, Move) :-
 % chooses a valid move for a hard bot
 choose_move_hard(Board-Player, Move) :-
     valid_moves(Board-Player, Player, ValidMoves),
-    hard_bot(Board-Player, ValidMoves, Values),
-    max_value_index(Values, Index),
+    hard_bot(Board-Player, ValidMoves, ListOfValues),
+    max_value_index(ListOfValues, Index),
     nth0(Index, ValidMoves, Move).
 
 
@@ -91,9 +91,9 @@ choose_piece_easy(Board-Player, Position) :-
 choose_piece_greedy(Board-Player, Position) :- % TODO - cut para se existirem varias boards e positions bons 
     player_piece(Player, Piece),
     findall(Row-Col, piece(Board, Row-Col, Piece), ValidPositions),
-    next_boards_NoValid(Board-Player, ValidPositions, NextGameStates), % TODO
-    list_of_values(NextGameStates, Values),
-    max_value_index(Values, Index),
+    next_boards_after_removal(Board-Player, ValidPositions, NextGameStates),
+    list_of_values(NextGameStates, ListOfValues),
+    max_value_index(ListOfValues, Index),
     nth0(Index, NextGameStates, BestBoard-_),
     replace_piece(Board, empty, Position, BestBoard).
 
@@ -103,74 +103,43 @@ choose_piece_greedy(Board-Player, Position) :- % TODO - cut para se existirem va
 choose_piece_hard(Board-Player, Position) :-
     player_piece(Player, Piece),
     findall(Row-Col, piece(Board, Row-Col, Piece), ValidPositions),
-    hard_bot_NoValid(Board-Player, ValidPositions, Values), % TODO
-    max_value_index(Values, Index),
+    hard_bot_NoValid(Board-Player, ValidPositions, ListOfValues), % TODO
+    max_value_index(ListOfValues, Index),
     nth0(Index, ValidPositions, Position).
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-% next_boards(+Board-Player, +ValidMoves, -NextBoards)
+% next_boards_after_move(+GameState, +ValidMoves, -NextBoards)
 % generates a list of all possible next boards given a list of valid moves
-next_boards(Board-Player, ValidMoves, NextBoards) :-
-    next_boards_aux(Board-Player, ValidMoves, [], NextBoards).
+next_boards_after_move(GameState, ValidMoves, NextBoards) :-
+    next_boards_after_move_aux(GameState, ValidMoves, [], NextBoards).
 
-next_boards_aux(_, [], NextBoards, NextBoards).
-next_boards_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, NextBoards) :-
+next_boards_after_move_aux(_, [], NextBoards, NextBoards).
+
+next_boards_after_move_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, NextBoards) :-
     piece(Board, SourceRow-SourceCol, Piece),
     move_piece(Board, Piece, SourceRow-SourceCol, DestRow-DestCol, NewBoard),
-    next_boards_aux(Board-Player, T, [NewBoard-Player | Acc], NextBoards).
+    next_boards_after_move_aux(Board-Player, T, [NewBoard-Player | Acc], NextBoards).
 
 
-% next_boards_NoValid(+Board-Player, +ListPositions, -NextBoards)
-% generates a list of all possible next boards given a list of positions
-next_boards_NoValid(Board-Player, ListPositions, NextBoards) :-
-    next_boards_NoValid_aux(Board-Player, ListPositions, [], NextBoards).
+% next_boards_after_removal(+GameState, +ValidPositions, -NextBoards)
+% generates a list of all possible next boards given a list of valid removal positions
+next_boards_after_removal(GameState, ValidPositions, NextBoards) :-
+    next_boards_after_removal_aux(GameState, ValidPositions, [], NextBoards).
 
-next_boards_NoValid_aux(_, [], NextBoards, NextBoards).
-next_boards_NoValid_aux(Board-Player, [Row-Col | T], Acc, NextBoards) :-
+next_boards_after_removal_aux(_, [], NextBoards, NextBoards).
+
+next_boards_after_removal_aux(Board-Player, [Row-Col | T], Acc, NextBoards) :-
     replace_piece(Board, empty, Row-Col, NewBoard),
-    next_boards_NoValid_aux(Board-Player, T, [NewBoard-Player | Acc], NextBoards).
+    next_boards_after_removal_aux(Board-Player, T, [NewBoard-Player | Acc], NextBoards).
 
 
-% list_of_values(+NextGameStates, -ListValues)
-% gets a list with the value for each NextGameStates
-list_of_values([],[]).
-list_of_values([Board-Player|T], [Value | ListValues]) :-
+% list_of_values(+GameStates, -ListOfValues)
+% gets a list with the value of each GameState
+list_of_values([], []).
+
+list_of_values([Board-Player | T], [Value | ListOfValues]) :-
     value(Board-Player, Player, Value),
-    list_of_values(T, ListValues).
-
-
-% get_all_positions(+Board-Player, -Positions)
-% gets all pieces positions of a given player and board
-get_all_positions(Board-Player, Positions) :-
-    player_piece(Player, Piece),
-    findall(Row-Col, piece(Board, Row-Col, Piece), Positions).
+    list_of_values(T, ListOfValues).
 
 
 % list_groups(+Board-Player, +Positions, -ListGroups)
