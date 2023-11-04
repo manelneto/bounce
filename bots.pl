@@ -1,6 +1,14 @@
 :- use_module(library(random)).
 
 
+%
+bot_difficulty(1, 'Easy Bot').
+bot_difficulty(2, 'Greedy Bot').
+bot_difficulty(3, 'Hard Bot').
+
+bot_color(1, ' (red)').
+bot_color(2, ' (blue)').
+
 % choose_move_easy(+Board-Player, -SourceRow-SourceCol-DestRow-DestCol)
 % chooses a random valid move for an easy bot on a given board when there are valid moves
 choose_move_easy(Board-Player, SourceRow-SourceCol-DestRow-DestCol):- 
@@ -114,56 +122,56 @@ find_max_value(ListValues, Index) :-
 
 % coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
 % gets the input coordinates for an human player's next move when there are valid moves
-coordinates(_-Player, SourceRow-SourceCol, DestRow-DestCol) :-
+move_coordinates(_-Player, SourceRow-SourceCol, DestRow-DestCol) :-
     player_name(_, Player , human),
     read_coordinates(SourceRow-SourceCol, DestRow-DestCol).
 
 
 % coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
 % gets the coordinates for an easy bot´s next move when there are valid moves
-coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
+move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
     player_name(_, Player , 1),
     choose_move_easy(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
 
 
 % coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
 % gets the coordinates for a greedy bot´s next move when there are valid moves
-coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
+move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
     player_name(_, Player, 2),
     greedy(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
 
 
 % coordinates(+Board-Player, -SourceRow-SourceCol, -DestRow-DestCol)
 % gets the coordinates for an hard bot´s next move when there are valid moves
-coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
+move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol) :-
     player_name(_, Player, 3),
     choose_move_hard(Board-Player, SourceRow-SourceCol-DestRow-DestCol).
 
 
 % coordinates_NoValid(+Board-Player, -Row-Col)
 % gets the input coordinates for an human player's next move when there are not valid moves
-coordinates_NoValid(_-Player, Row-Col) :-
+piece_coordinates(_-Player, Row-Col) :-
     player_name(_, Player , human),
     read_coordinates(Row-Col).
 
 
 % coordinates_NoValid(+Board-Player, -Row-Col)
 % gets the coordinates for an easy bot´s next move when there are not valid moves
-coordinates_NoValid(Board-Player, Row-Col) :-
+piece_coordinates(Board-Player, Row-Col) :-
     player_name(_, Player , 1),
     choose_move_easy_NoValid(Board-Player, Row-Col).
 
 
 %coordinates_NoValid(+Board-Player, -Row-Col)
 % gets the coordinates for a greedy bot´s next move when there are not valid moves
-coordinates_NoValid(Board-Player, Row-Col) :-
+piece_coordinates(Board-Player, Row-Col) :-
     player_name(_, Player, 2),
     greedy_NoValid(Board-Player, Row-Col).
 
 
 %coordinates_NoValid(+Board-Player, -Row-Col)
 % gets the coordinates for an hard bot´s next move when there are not valid moves
-coordinates_NoValid(Board-Player, Row-Col) :-
+piece_coordinates(Board-Player, Row-Col) :-
     player_name(_, Player, 3),
     choose_move_hard_NoValid(Board-Player, Row-Col).
 

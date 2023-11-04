@@ -4,8 +4,8 @@
 :- consult(utils).
 
 
-% change_color(?Color1, ?Color2)
-% changes the color of a piece
+% change_color(?Color, ?NewColor)
+% changes the color
 change_color(blue, red).
 change_color(red, blue).
 
@@ -17,13 +17,13 @@ change_player(2, 1).
 
 
 % player_piece(?Player, ?Piece)
-% maps a player to a piece
+% maps a player to its pieces' color
 player_piece(1, red).
 player_piece(2, blue).
 
 
 % replace_piece(+Board, +Piece, +Position, -NewBoard)
-% replaces a piece at a given position on the board with a new piece
+% replaces a given position on the board with a piece
 replace_piece(Board, Piece, RowPos-ColPos, NewBoard) :-
     nth0(RowPos, Board, Row),
     replace(Row, Piece, ColPos, NewRow),
@@ -31,7 +31,7 @@ replace_piece(Board, Piece, RowPos-ColPos, NewBoard) :-
 
 
 % move_piece(+Board, +Piece, +SourcePos, +DestPos, -NewBoard)
-% moves a piece from one position to another on the board
+% moves a piece from one position on the board to another
 move_piece(Board, Piece, SourcePos, DestPos, NewBoard) :-
     replace_piece(Board, empty, SourcePos, _B),
     replace_piece(_B, Piece, DestPos, NewBoard).
@@ -125,13 +125,13 @@ right(Board, Row-Col, Row-RightCol) :-
 
 
 % piece(?Board, ?Position, ?Piece)
-% retrieves the piece at a given position on the board
+% maps a piece to its position on the board and vice versa
 piece(Board, Row-Col, Piece) :-
     nth0(Row, Board, BoardRow),
     nth0(Col, BoardRow, Piece).
 
 
-% empty(?Board, ?Position)
+% is_empty(?Board, ?Position)
 % checks if a given position on the board is empty
 is_empty(Board, Position) :-
     piece(Board, Position, empty).
@@ -145,14 +145,14 @@ check_player_piece(Board, Player, Position) :-
 
 
 % same_color(+Board, +Position1, +Position2)
-% checks if a given position has a piece of the same color
+% checks if two positions on the board have pieces of the same color
 same_color(Board, Position1, Position2) :-
     piece(Board, Position1, Piece),
     piece(Board, Position2, Piece).
 
 
 % neighbor(+Board, +Position, -NeighborPosition)
-% checks if a given position has a neighboring piece of the same color
+% given a position on the board, retrieves its neighbors' with pieces of the same color
 neighbor(Board, Position, NeighborPosition) :-
     up(Board, Position, NeighborPosition),
     same_color(Board, Position, NeighborPosition).
@@ -184,7 +184,7 @@ flood_fill_aux(Board, [Position | T], Acc, Filled) :-
 
 
 % check_larger_group(+Board, +SourcePos, +DestPos)
-% checks if moving a piece from a source position to a destination position results in a larger group of the same color
+% checks if moving a piece from a source position on the board to a destination position results in a larger group of the same color
 check_larger_group(Board, SourcePos, DestPos) :-
     flood_fill(Board, [SourcePos], SourceFilled),
     length(SourceFilled, SourceSize),
@@ -208,10 +208,8 @@ can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol) :-
 % find_all_positions(+Board, +Piece, -ListPositions)
 % finds all positions of a given piece on the board
 find_all_positions(Board, Piece, ListPositions) :-
-    findall(Row-Col, piece(Board, Row-Col,Piece), ListPositions).
+    findall(Row-Col, piece(Board, Row-Col, Piece), ListPositions).
 
-
-% TODO ...
 
 % player_pieces_number(+Board, +Piece, -N)
 % counts the number of a given piece on the board
@@ -220,23 +218,28 @@ player_pieces_number(Board, Piece, N) :-
     length(ListPositions, N).
 
 
-% game_loop(+Board-Player)
-% it is main game loop
+% game_loop(+GameState)
+% it is the main game loop
 % if the game is over, it prints the name of the winner and ends the loop
 game_loop(Board-Player) :-
     game_over(Board-Player, Winner),
+    length(Board, BoardSize),
+    print_header(0, BoardSize),
+    print_board(Board, 0),
+    print_board_line(BoardSize),
     player_name(Name, Winner, _),
+    nl,
     write(Name),
     write(' won!\n').
 
-% if the game is not over, it plays the game and continues the loop with the new game state
-game_loop(Board-Player) :-
-    game_play(Board-Player, NewBoard-NewPlayer),
-    game_loop(NewBoard-NewPlayer).
+% if the game is not over, it plays the game and continues the loop with a new game state
+game_loop(GameState) :-
+    game_play(GameState, NewGameState),
+    game_loop(NewGameState).
 
 
-% game_play(+Board-Player, -NewGameState)
-% if there are valid moves, it displays the game, waits for the player to enter coordinates,
+% game_play(+GameState, -NewGameState)
+% if there are valid moves, it displays the game, waits for the player to enter coordinates of a valid move,
 % moves the piece, and returns the new game state
 game_play(Board-Player, NewGameState) :-
     valid_moves(Board-Player, Player, ValidMoves),
@@ -244,19 +247,19 @@ game_play(Board-Player, NewGameState) :-
     N > 0,
     display_game(Board-Player),
     repeat,
-    coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol),
+    move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol),
     move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState),
     !.
 
-% if there are no valid moves, it displays the game, waits for the player to enter coordinates,
-% replaces the piece at the entered coordinates with an empty piece, returns the new game state and changes the player.
+% if there are no valid moves, it displays the game, waits for the player to enter coordinates of a valid piece,
+% removes the piece at those coordinates, returns the new board and changes the player.
 game_play(Board-Player, NewBoard-NewPlayer) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
     N =:= 0,
     display_game(Board-Player),
     repeat,
-    coordinates_NoValid(Board-Player, Row-Col),
+    piece_coordinates(Board-Player, Row-Col),
     replace_piece(Board, empty, Row-Col, NewBoard),
     !,
     change_player(Player, NewPlayer).
@@ -281,15 +284,22 @@ start_human_bot :-
     change_player(Color, NewColor),
     asserta(player_name(Name, Color, human)),
     bot_menu(Difficulty),
-    asserta(player_name('bot', NewColor, Difficulty)).
+    bot_difficulty(Difficulty, BotName),
+    asserta(player_name(BotName, NewColor, Difficulty)).
 
 
 % start_bot_bot/0
 % starts a game between two bots
 start_bot_bot :-
-    get_color('BOT 1', Color),
+    get_color('Bot 1', Color),
     change_player(Color, NewColor),
-    bot_menu(Difficulty1), 
-    asserta(player_name('BOT 1', Color, Difficulty1)),
-    bot_menu(Difficulty2),
-    asserta(player_name('BOT 2', NewColor, Difficulty2)).
+    bot_menu(Difficulty), 
+    bot_difficulty(Difficulty, BotName),
+    bot_color(Color, BotColor),
+    atom_concat(BotName, BotColor, Name),
+    asserta(player_name(Name, Color, Difficulty)),
+    bot_menu(NewDifficulty),
+    bot_difficulty(NewDifficulty, NewBotName),
+    bot_color(NewColor, NewBotColor),
+    atom_concat(NewBotName, NewBotColor, NewName),
+    asserta(player_name(NewName, NewColor, NewDifficulty)).
