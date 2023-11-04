@@ -1,6 +1,7 @@
 % utils.pl
 
 % read*
+% press_any_key
 % print*
 % invert
 % max*
@@ -77,6 +78,16 @@ read_coordinates(SourceRow-SourceCol, DestRow-DestCol) :-
     write('Column: '),
     read_number(DestCol),
     nl.
+
+
+% press_enter/0
+% waits for the user to press ENTER
+press_enter :-
+    write('Press ENTER to continue\n'),
+    repeat,
+    get_char(C),
+    C = '\n',
+    !. 
 
 
 % print_header(+N, +HeaderSize)
