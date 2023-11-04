@@ -61,7 +61,7 @@ choose_move_easy(Board-Player, Move) :-
 % chooses a valid move for a greedy bot by generating all possible next game states and finding the best one
 choose_move_greedy(Board-Player, Move) :-
     valid_moves(Board-Player, Player, ValidMoves),
-    next_boards(Board-Player, ValidMoves, NextGameStates),
+    next_boards_after_move(Board-Player, ValidMoves, NextGameStates),
     list_of_values(NextGameStates, ListOfValues),
     max_value_index(ListOfValues, Index),
     nth0(Index, NextGameStates, BestBoard-_),
@@ -73,7 +73,7 @@ choose_move_greedy(Board-Player, Move) :-
 % chooses a valid move for a hard bot
 choose_move_hard(Board-Player, Move) :-
     valid_moves(Board-Player, Player, ValidMoves),
-    hard_bot(Board-Player, ValidMoves, ListOfValues),
+    hard_bot_move(Board-Player, ValidMoves, ListOfValues),
     max_value_index(ListOfValues, Index),
     nth0(Index, ValidMoves, Move).
 
@@ -100,7 +100,7 @@ choose_piece_greedy(Board-Player, Position) :- % TODO - cut para se existirem va
 % chooses a piece's position for a hard bot to remove
 choose_piece_hard(Board-Player, Position) :-
     all_positions(Board-Player, ValidPositions),
-    hard_bot_NoValid(Board-Player, ValidPositions, ListOfValues), % TODO
+    hard_bot_removal(Board-Player, ValidPositions, ListOfValues),
     max_value_index(ListOfValues, Index),
     nth0(Index, ValidPositions, Position).
 
@@ -139,20 +139,21 @@ list_of_values([Board-Player | T], [Value | ListOfValues]) :-
     list_of_values(T, ListOfValues).
 
 
-% hard_bot(+Board-Player, +ValidMoves, -ListValues)
-% receives a list of values and invert it 
-hard_bot(Board-Player, ValidMoves, ListValues) :-
-    hard(Board-Player, ValidMoves, LValues),
-    invert(LValues, ListValues).
+% hard_bot_move(+GameState, +ValidMoves, -ListOfValues)
+% generates a list with the value of each move, according to the hard bot algorithm
+hard_bot_move(GameState, ValidMoves, ListOfValues) :-
+    hard_bot_move_values(GameState, ValidMoves, InvertedListOfValues),
+    invert(InvertedListOfValues, ListOfValues).
 
 
-% hard(+Board-Player, +ValidMoves, -LValues)
-% calculates the list of values for each board with one play from the player 1 and 2 when there are valid moves
-hard(Board-Player, ValidMoves, LValues) :-
-    hard_aux(Board-Player, ValidMoves, [], LValues).
+% hard_bot_move_values(+GameState, +ValidMoves, -ListOfValues)
+% calculates the list of values for each board with one play from player 1 and the next play from player 2 when there are valid moves
+hard_bot_move_values(GameState, ValidMoves, ListOfValues) :-
+    hard_bot_move_values_aux(GameState, ValidMoves, [], ListOfValues).
 
-hard_aux(_,[],LValues, LValues).
-hard_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, LValues) :-
+hard_bot_move_values_aux(_, [], ListOfValues, ListOfValues).
+
+hard_bot_move_values_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, ListOfValues) :-
     player_piece(Player, Piece),
     move_piece(Board, Piece, SourceRow-SourceCol, DestRow-DestCol, NewBoard), 
     value(NewBoard-Player, Player, Value),
@@ -163,23 +164,24 @@ hard_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T], Acc, LValues) 
     move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
     value(NewBoard1-NewPlayer, NewPlayer, Value1),
     Value2 is (2 * Value) - Value1,
-    hard_aux(Board-Player, T, [Value2 |Acc], LValues).
+    hard_bot_move_values_aux(Board-Player, T, [Value2 | Acc], ListOfValues).
     
 
-% hard_bot_NoValid(+Board-Player, +ValidMoves, -ListValues)
-% receives a list of values and invert it 
-hard_bot_NoValid(Board-Player, ListPositions, ListValues) :-
-    hard_NoValid(Board-Player, ListPositions, LValues),
-    invert(LValues, ListValues).
+% hard_bot_removal(+GameState, +ValidPositions, -ListOfValues)
+% generates a list with the value of each removal, according to the hard bot algorithm
+hard_bot_removal(GameState, ValidPositions, ListOfValues) :-
+    hard_bot_removal_values(GameState, ValidPositions, InvertedListOfValues),
+    invert(InvertedListOfValues, ListOfValues).
 
 
-% hard(+Board-Player, +ListPositions, -LValues)
-% calculates the list of values for each board with one play from the player 1 and 2 when there are not valid moves
-hard_NoValid(Board-Player, ListPositions, LValues) :-
-    hard_NoValid_aux(Board-Player, ListPositions, [], LValues).
+% hard_bot_removal_values(+GameState, +ValidPositions, -ListOfValues)
+% calculates the list of values for each board with one play from the player 1 and the next play from player 2 when there are no valid moves
+hard_bot_removal_values(GameState, ValidPositions, ListOfValues) :-
+    hard_bot_removal_values_aux(GameState, ValidPositions, [], ListOfValues).
 
-hard_NoValid_aux(_,[],LValues, LValues).
-hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
+hard_bot_removal_values_aux(_, [], ListOfValues, ListOfValues).
+
+hard_bot_removal_values_aux(Board-Player, [Row-Col | T], Acc, ListOfValues) :-
     replace_piece(Board, empty, Row-Col, NewBoard),
     value(NewBoard-Player, Player, Value),
     change_player(Player, NewPlayer),
@@ -191,9 +193,9 @@ hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
     replace_piece(NewBoard, empty, MoveSourceRow-MoveSourceCol, NewBoard1),
     value(NewBoard1-NewPlayer, NewPlayer, Value1),
     Value2 is (2 * Value) - Value1,
-    hard_NoValid_aux(Board-Player, T, [Value2 |Acc], LValues).
+    hard_bot_removal_values_aux(Board-Player, T, [Value2 | Acc], ListOfValues).
 
-hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
+hard_bot_removal_values_aux(Board-Player, [Row-Col | T], Acc, ListOfValues) :-
     replace_piece(Board, empty, Row-Col, NewBoard),
     value(NewBoard-Player, Player, Value),
     change_player(Player, NewPlayer),
@@ -203,4 +205,4 @@ hard_NoValid_aux(Board-Player, [Row-Col | T], Acc, LValues) :-
     move_piece(NewBoard, NewPiece, MoveSourceRow-MoveSourceCol, MoveDestRow-MoveDestCol, NewBoard1),
     value(NewBoard1-NewPlayer, NewPlayer, Value1),
     Value2 is (2 * Value) - Value1,
-    hard_NoValid_aux(Board-Player, T, [Value2 |Acc], LValues).
+    hard_bot_removal_values_aux(Board-Player, T, [Value2 | Acc], ListOfValues).
