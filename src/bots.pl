@@ -74,8 +74,8 @@ choose_move_hard(Board-Player, Move) :-
 
 % choose_piece_easy(+GameState, -Position)
 % chooses a random piece's position for an easy bot to remove
-choose_piece_easy(GameState, Position) :- 
-    all_positions(GameState, ValidPositions),
+choose_piece_easy(Board-Player, Position) :- 
+    all_positions(Board-Player, ValidPositions),
     random_member(Position, ValidPositions).
 
 
@@ -101,8 +101,8 @@ choose_piece_hard(Board-Player, Position) :-
 
 % next_boards_after_move(+GameState, +ValidMoves, -NextBoards)
 % generates a list of all possible next boards given a list of valid moves
-next_boards_after_move(GameState, ValidMoves, NextBoards) :-
-    next_boards_after_move_aux(GameState, ValidMoves, [], NextBoards).
+next_boards_after_move(Board-Player, ValidMoves, NextBoards) :-
+    next_boards_after_move_aux(Board-Player, ValidMoves, [], NextBoards).
 
 next_boards_after_move_aux(_, [], NextBoards, NextBoards).
 
@@ -114,8 +114,8 @@ next_boards_after_move_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | 
 
 % next_boards_after_removal(+GameState, +ValidPositions, -NextBoards)
 % generates a list of all possible next boards given a list of valid removal positions
-next_boards_after_removal(GameState, ValidPositions, NextBoards) :-
-    next_boards_after_removal_aux(GameState, ValidPositions, [], NextBoards).
+next_boards_after_removal(Board-Player, ValidPositions, NextBoards) :-
+    next_boards_after_removal_aux(Board-Player, ValidPositions, [], NextBoards).
 
 next_boards_after_removal_aux(_, [], NextBoards, NextBoards).
 
@@ -135,15 +135,15 @@ list_of_values([Board-Player | T], [Value | ListOfValues]) :-
 
 % hard_bot_move(+GameState, +ValidMoves, -ListOfValues)
 % generates a list with the value of each move, according to the hard bot algorithm
-hard_bot_move(GameState, ValidMoves, ListOfValues) :-
-    hard_bot_move_values(GameState, ValidMoves, InvertedListOfValues),
+hard_bot_move(Board-Player, ValidMoves, ListOfValues) :-
+    hard_bot_move_values(Board-Player, ValidMoves, InvertedListOfValues),
     invert(InvertedListOfValues, ListOfValues).
 
 
 % hard_bot_move_values(+GameState, +ValidMoves, -ListOfValues)
 % calculates the list of values for each board with one play from player 1 and the next play from player 2 when there are valid moves
-hard_bot_move_values(GameState, ValidMoves, ListOfValues) :-
-    hard_bot_move_values_aux(GameState, ValidMoves, [], ListOfValues).
+hard_bot_move_values(Board-Player, ValidMoves, ListOfValues) :-
+    hard_bot_move_values_aux(Board-Player, ValidMoves, [], ListOfValues).
 
 hard_bot_move_values_aux(_, [], ListOfValues, ListOfValues).
 
@@ -163,15 +163,15 @@ hard_bot_move_values_aux(Board-Player, [SourceRow-SourceCol-DestRow-DestCol | T]
 
 % hard_bot_removal(+GameState, +ValidPositions, -ListOfValues)
 % generates a list with the value of each removal, according to the hard bot algorithm
-hard_bot_removal(GameState, ValidPositions, ListOfValues) :-
-    hard_bot_removal_values(GameState, ValidPositions, InvertedListOfValues),
+hard_bot_removal(Board-Player, ValidPositions, ListOfValues) :-
+    hard_bot_removal_values(Board-Player, ValidPositions, InvertedListOfValues),
     invert(InvertedListOfValues, ListOfValues).
 
 
 % hard_bot_removal_values(+GameState, +ValidPositions, -ListOfValues)
 % calculates the list of values for each board with one play from the player 1 and the next play from player 2 when there are no valid moves
-hard_bot_removal_values(GameState, ValidPositions, ListOfValues) :-
-    hard_bot_removal_values_aux(GameState, ValidPositions, [], ListOfValues).
+hard_bot_removal_values(Board-Player, ValidPositions, ListOfValues) :-
+    hard_bot_removal_values_aux(Board-Player, ValidPositions, [], ListOfValues).
 
 hard_bot_removal_values_aux(_, [], ListOfValues, ListOfValues).
 

@@ -259,22 +259,22 @@ game_loop(Board-Player) :-
     write(' won!\n').
 
 % if the game is not over, it plays the game and continues the loop with a new game state
-game_loop(GameState) :-
-    game_play(GameState, NewGameState),
-    game_loop(NewGameState).
+game_loop(Board-Player) :-
+    game_play(Board-Player, NewBoard-NewPlayer),
+    game_loop( NewBoard-NewPlayer).
 
 
 % game_play(+GameState, -NewGameState)
 % if there are valid moves, it displays the game, waits for the player to enter coordinates of a valid move,
 % moves the piece and returns the new game state
-game_play(Board-Player, NewGameState) :-
+game_play(Board-Player,  NewBoard-NewPlayer) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
     N > 0,
     display_game(Board-Player),
     repeat,
     move_coordinates(Board-Player, SourceRow-SourceCol, DestRow-DestCol),
-    move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewGameState),
+    move(Board-Player, SourceRow-SourceCol-DestRow-DestCol, NewBoard-NewPlayer),
     !.
 
 % if there are no valid moves, it displays the game, waits for the player to enter coordinates of a valid piece,

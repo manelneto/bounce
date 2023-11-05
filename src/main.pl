@@ -26,22 +26,22 @@ play :-
 play(1) :-
     start_human_human,
     board_menu(BoardSize),
-    initial_state(BoardSize, GameState),
-    game_loop(GameState),
+    initial_state(BoardSize, Board-Player),
+    game_loop(Board-Player),
     !.
 
 play(2) :- 
     start_human_bot,
     board_menu(BoardSize),
-    initial_state(BoardSize, GameState),
-    game_loop(GameState),
+    initial_state(BoardSize, Board-Player),
+    game_loop(Board-Player),
     !.
 
 play(3) :- 
     start_bot_bot,
     board_menu(BoardSize),
-    initial_state(BoardSize, GameState),
-    game_loop(GameState),
+    initial_state(BoardSize, Board-Player),
+    game_loop(Board-Player),
     !.
 
 
