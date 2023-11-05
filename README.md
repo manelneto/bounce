@@ -16,7 +16,7 @@ A contribuição de cada elemento do grupo para o trabalho prático é 50%.
 
 Para a correta instalação e execução do jogo (quer em ambientes Windows, quer em ambientes Linux), devem ser seguidos os seguintes passos:
 
-1. Descarregar o ficheiro PFL_TP1_T12_Bounce5.zip
+1. Descarregar o ficheiro PFL_TP1_T12_Bounce_5.zip
 
 2. Descompactar o ficheiro descarregado
 
