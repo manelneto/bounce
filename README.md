@@ -7,7 +7,6 @@ Jogo N.º 4: **Bounce** - https://marksteeregames.com/Bounce_rules.pdf
 Grupo: **Bounce_5**
 
 * Manuel Ramos Leite Carvalho Neto - up202108744
-
 * Matilde Isabel da Silva Simões - up202108782
 
 A contribuição de cada elemento do grupo para o trabalho prático é 50%.
@@ -132,19 +131,19 @@ Os três estados representados na subsecção anterior são visualizados nas ima
 
 **Menus**
 
-![Menus](/images/menus.png)
+![Menus](menus.png)
 
 **Estado Inicial**
 
-![Estado Inicial](/images/inicial.png)
+![Estado Inicial](inicial.png)
 
 **Estado Intermédio**
 
-![Estado Intermédio](/images/intermedio.png)
+![Estado Intermédio](intermedio.png)
 
 **Estado Final**
 
-![Estado Final](/images/final.png)
+![Estado Final](final.png)
 
 ### Validação e Execução de um Movimento
 
@@ -212,7 +211,7 @@ Ora, o predicado responsável pela avaliação do estado do jogo é `value(+Game
 
 A escolha de um movimento por parte do computador depende do nível de dificuldade pretendido.
 
-Note-se que, nesta subsecção, a palavra "movimento" é utilizada num sentido mais abragente, referindo-se, por um lado, a um movimento propriamente dito (isto é, à mudança de uma peça a partir de uma posição de origem para uma posição de destino) quando é possível realizá-lo e, por outro lado, a uma remoção de uma peça quando não existem movimentos válidos para efetuar.
+Note-se que a palavra "movimento" é utilizada num sentido mais abragente, referindo-se tanto à mudança de uma peça a partir de uma posição de origem para uma posição de destino (quando é possível), como a remoção de uma peça quando não existem movimentos válidos para efetuar.
 
 Se o nível for 1, o computador (*easy bot*) limita-se a escolher um movimento aleatório de entre todos os movimentos possíveis.
 
@@ -226,7 +225,7 @@ Assim, o predicado que define como é que o computador escolhe um movimento é `
 
 Em suma, finalizado o trabalho prático, retiramos duas principais conclusões.
 
-Em primeiro lugar, sabemos que o programa tem algumas limitações, nomeadamente a demora dos *bots greedy* e *hard* para jogarem em tabuleiros de tamanho superior a quatro. Esta questão deve-se à exigência dos algoritmos que lhes estão subjacentes e ao aumento exponencial do número de movimentos possíveis conforme o aumento do tamanho do tabuleiro, o que se reflete em mais tempo gasto nas tomadas de decisão.
+Em primeiro lugar, sabemos que o programa tem limitações, nomeadamente a demora dos *bots greedy* e *hard* para jogarem em tabuleiros de tamanho superior a quatro. Esta questão deve-se à exigência dos algoritmos que lhes estão subjacentes e ao aumento exponencial do número de movimentos possíveis conforme o aumento do tamanho do tabuleiro, o que se reflete em mais tempo gasto nas tomadas de decisão.
 
 Em segundo lugar, temos também conhecimento de quais seriam as melhorias possíveis para o programa. Ora, na linha da conclusão anterior, a principal melhoria a efetuar seria aumentar a eficiência dos algoritmos dos *bots*, encontrando métodos menos complexos e mais rápidos para realizar o pretendido. Se tal fosse possível, poderíamos igualmente aumentar a profunidade da análise do *hard bot*, tornando-o ainda mais inteligente e difícil de derrotar.
 
