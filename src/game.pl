@@ -261,13 +261,13 @@ game_loop(Board-Player) :-
 % if the game is not over, it plays the game and continues the loop with a new game state
 game_loop(Board-Player) :-
     game_play(Board-Player, NewBoard-NewPlayer),
-    game_loop( NewBoard-NewPlayer).
+    game_loop(NewBoard-NewPlayer).
 
 
 % game_play(+GameState, -NewGameState)
 % if there are valid moves, it displays the game, waits for the player to enter coordinates of a valid move,
 % moves the piece and returns the new game state
-game_play(Board-Player,  NewBoard-NewPlayer) :-
+game_play(Board-Player, NewBoard-NewPlayer) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
     N > 0,
