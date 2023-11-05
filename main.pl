@@ -1,14 +1,9 @@
 % main.pl
 
-% play
-% display_game
-% initial_state
-% move
-% valid_moves
-% game_over
-% value
-% choose_move
-% choose_piece
+
+:- use_module(library(between)).
+:- use_module(library(lists)).
+:- use_module(library(random)).
 
 
 :- consult(utils).
@@ -27,7 +22,7 @@ play :-
 
 
 % play(+GameMode)
-% plays a human-human game
+% plays a game of a given mode
 play(1) :-
     start_human_human,
     board_menu(BoardSize),
@@ -35,9 +30,6 @@ play(1) :-
     game_loop(GameState),
     !.
 
-
-% play(+GameMode)
-% plays a human-bot game
 play(2) :- 
     start_human_bot,
     board_menu(BoardSize),
@@ -45,9 +37,6 @@ play(2) :-
     game_loop(GameState),
     !.
 
-
-% play(+GameMode)
-% plays a bot-bot game
 play(3) :- 
     start_bot_bot,
     board_menu(BoardSize),
@@ -100,7 +89,7 @@ game_over(Board-Player, Winner) :-
     length(Positions, N),
     length(Group, N).
 
-% value(+GameState, +Player, -Value) - TODO
+% value(+GameState, +Player, -Value)
 % calculates the board value using the number of pieces, groups and the length of the biggest group of a given player
 value(Board-Player, Player, Value) :-
     all_positions(Board-Player, Positions),
@@ -109,7 +98,7 @@ value(Board-Player, Player, Value) :-
     sort(ListGroups, SortedListGroups),
     length(SortedListGroups, NumberGroups),
     biggest_group_length(SortedListGroups, BiggerGroup),
-    Value is (NumberPieces * -0.25) + (NumberGroups * -0.65) + (BiggerGroup * 0.10).
+    Value is (NumberPieces * -0.15) + (NumberGroups * -0.55) + (BiggerGroup * 0.3).
 
 
 % choose_move(+GameState, +Player, +Level, -Move)

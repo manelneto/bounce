@@ -1,9 +1,5 @@
 % menu.pl
 
-% bounce
-% *menu
-% get*
-
 
 % bounce/0
 % represents the beginning of the game 

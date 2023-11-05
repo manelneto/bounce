@@ -1,17 +1,5 @@
 % utils.pl
 
-% read*
-% press_any_key
-% print*
-% invert
-% max*
-% replace
-% translate
-
-
-:- use_module(library(between)).
-:- use_module(library(lists)).
-
 
 % read_number(-X)
 % reads an input number

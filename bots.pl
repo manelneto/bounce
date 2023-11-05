@@ -1,12 +1,5 @@
 % bots.pl
 
-% bot*
-% *coordinates
-% choose*
-
-
-:- use_module(library(random)).
-
 
 % bot_difficulty(?Difficulty, ?Name)
 % maps a bot's difficulty to its name
@@ -14,8 +7,9 @@ bot_difficulty(1, 'Easy Bot').
 bot_difficulty(2, 'Greedy Bot').
 bot_difficulty(3, 'Hard Bot').
 
+
 % bot_color(?Bot, ?Color)
-% maps a bot's to its color
+% maps a bot to its color
 bot_color(1, ' (red)').
 bot_color(2, ' (blue)').
 
@@ -87,7 +81,7 @@ choose_piece_easy(GameState, Position) :-
 
 % choose_piece_greedy(+GameState, -Position)
 % chooses a piece's position for a greedy bot to remove by generating all possible next game states and finding the best one
-choose_piece_greedy(Board-Player, Position) :- % TODO - cut para se existirem varias boards e positions bons 
+choose_piece_greedy(Board-Player, Position) :-
     all_positions(Board-Player, ValidPositions),
     next_boards_after_removal(Board-Player, ValidPositions, NextGameStates),
     list_of_values(NextGameStates, ListOfValues),

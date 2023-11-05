@@ -1,9 +1,6 @@
 % game.pl
 
 
-:- consult(utils).
-
-
 % player_attributes(?Name, ?Player, ?Difficulty)
 % maps a player to its attributes (name and difficulty)
 :- dynamic player_attributes/3.
@@ -269,7 +266,7 @@ game_loop(GameState) :-
 
 % game_play(+GameState, -NewGameState)
 % if there are valid moves, it displays the game, waits for the player to enter coordinates of a valid move,
-% moves the piece, and returns the new game state
+% moves the piece and returns the new game state
 game_play(Board-Player, NewGameState) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
@@ -281,7 +278,7 @@ game_play(Board-Player, NewGameState) :-
     !.
 
 % if there are no valid moves, it displays the game, waits for the player to enter coordinates of a valid piece,
-% removes the piece at those coordinates, returns the new board and changes the player.
+% removes the piece at those coordinates and returns the new game state
 game_play(Board-Player, NewBoard-NewPlayer) :-
     valid_moves(Board-Player, Player, ValidMoves),
     length(ValidMoves, N),
