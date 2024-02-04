@@ -1,6 +1,10 @@
-# PFL - Trabalho Prático 1 
+# Bounce
 
-## Identificação do Tópico e Grupo
+Este projeto foi desenvolvido no âmbito da Unidade Curricular **Programação Funcional e em Lógica (PFL)** do 1º semestre do 3º ano da **Licenciatura em Engenharia Informática e Computação (LEIC)** da **Faculdade de Engenharia da Universidade do Porto (FEUP)**, no ano letivo 2023/2024.
+
+## PFL - Trabalho Prático 1 
+
+### Identificação do Tópico e Grupo
 
 Jogo N.º 4: **Bounce** - https://marksteeregames.com/Bounce_rules.pdf
 
@@ -11,7 +15,7 @@ Grupo: **Bounce_5**
 
 A contribuição de cada elemento do grupo para o trabalho prático é 50%.
 
-## Instalação e Execução
+### Instalação e Execução
 
 Para a correta instalação e execução do jogo (quer em ambientes Windows, quer em ambientes Linux), devem ser seguidos os seguintes passos:
 
@@ -23,7 +27,7 @@ Para a correta instalação e execução do jogo (quer em ambientes Windows, que
 
 4. Iniciar o jogo, chamando o predicado ***play/0***: `| ?- play.`
 
-## Descrição do Jogo
+### Descrição do Jogo
 
 Bounce é um jogo de estratégia para dois jogadores que se desenrola num tabuleiro quadrado de tamanho par. Inicialmente, o tabuleiro é configurado com um padrão de peças vermelhas e azuis, deixando os quatro cantos vazios.
 
@@ -37,13 +41,13 @@ O jogador ganha ao conseguir - durante o seu turno - agrupar todas as suas peça
 
 O ficheiro utilizado obter a informação descrita anteriormente foi https://marksteeregames.com/Bounce_rules.pdf.
 
-## Lógica do Jogo
+### Lógica do Jogo
 
 Esta secção descreve o *design* e a implementação da lógica do jogo em Prolog, através dos sete tópicos seguintes.
 
 Todas os predicados referenciados nas subsecções abaixo encontram-se no ficheiro `main.pl`.
 
-### Representação do Estado Interno do Jogo
+#### Representação do Estado Interno do Jogo
 
 O estado interno do jogo é representado através de um termo composto por dois elementos: o tabuleiro e o jogador atual.
 
@@ -99,7 +103,7 @@ gameState = [
 
 Neste estado final - conforme se explicará numa subsecção posterior - o jogador 2 (jogador das peças azuis) ganhou o jogo.
 
-### Visualização do Estado do Jogo
+#### Visualização do Estado do Jogo
 
 A visualização do estado do jogo consiste na representação gráfica do tabuleiro e do jogador atual.
 
@@ -145,7 +149,7 @@ Os três estados representados na subsecção anterior são visualizados nas ima
 
 ![Estado Final](final.png)
 
-### Validação e Execução de um Movimento
+#### Validação e Execução de um Movimento
 
 Um movimento é uma estrutura LinhaOrigem-ColunaOrigem-LinhaDestino-ColunaDestino.
 
@@ -171,7 +175,7 @@ O predicado `Move(+GameState, +Move, -NewGameState)` é responsável pela valida
 
 Se não existirem movimentos válidos, o jogador atual deve remover uma das suas peças do tabuleiro e terminar a sua jogada, não sendo isto considerado um movimento, mas sim uma simples remoção da peça de uma dada posição (igualmente validada).
 
-### Lista de Movimentos Válidos
+#### Lista de Movimentos Válidos
 
 A lista de movimentos válidos/possíveis é obtida através do predicado `valid_moves(+GameState, +Player, -ListOfMoves)`, que simplesmente faz `findall(SourceRow-SourceCol-DestRow-DestCol, can_move(Board-Player, SourceRow-SourceCol-DestRow-DestCol), ListOfMoves)`.
 
@@ -179,7 +183,7 @@ Este predicado recorre ao predicado `can_move/3` que verifica as condições exp
 
 Se não existirem movimentos válidos, o jogador atual tem de remover qualquer uma das suas peças, havendo, por isso, uma coincidência entre as remoções válidas e as posições das peças do jogador.
 
-### Fim do Jogo
+#### Fim do Jogo
 
 O jogo termina quando um jogador, depois da sua jogada, conseguiu formar um único grupo com as suas peças.
 
@@ -187,7 +191,7 @@ Assim, a verificação de fim do jogo é feita através de um *flood fill* a par
 
 O predicado encarregue por esta análise é `game_over(+GameState, -Winner)`.
 
-### Avaliação do Estado do Jogo
+#### Avaliação do Estado do Jogo
 
 A avaliação do estado do jogo assenta em três critérios - com pesos diferentes -, considerados essenciais para definir quão bom é um tabuleiro para um dado jogador. Os critérios e as respetivas ponderações são os seguintes:
 
@@ -207,7 +211,7 @@ Os fatores de coeficiente negativo na fórmula servem para identificar e tratar 
 
 Ora, o predicado responsável pela avaliação do estado do jogo é `value(+GameState, +Player, -Value)`. Este predicado limita-se a traduzir para código as três condições enunciadas nesta secção, ou seja: conta o número de peças do jogador (o comprimento da lista de todas as posições das suas peças), determina o número de grupos deste (o comprimento da lista de todos os seus grupos, determinados recorrendo ao algoritmo de *flood fill* a partir de todas as posições encontradas anteriormente) e calcula o tamanho do maior grupo (aproveitando os grupos obtidos previamente). Identificados os valores, o predicado segue a expressão exposta para calcular o valor do tabuleiro para um dado jogador.
 
-### Jogadas do Computador
+#### Jogadas do Computador
 
 A escolha de um movimento por parte do computador depende do nível de dificuldade pretendido.
 
@@ -221,7 +225,7 @@ Se o nível for 3, o computador (*hard bot*) tem em consideração não só os s
 
 Assim, o predicado que define como é que o computador escolhe um movimento é `choose_move(+GameState, +Player, +Level, -Move)` (e também `choose_piece(+GameState, +Player, +Level, -Position)`, quando não existem movimentos válidos). Efetivamente, este predicado apenas delega a decisão do movimento a efetuar para os predicados adequados conforme a dificuldade pretendida: chama `choose_move_easy(+GameState, -Move)` para a dificuldade 1, `choose_move_greedy(+GameState, -Move)` para a dificuldade 2 e `choose_move_hard(+GameState, -Move)` para a dificuldade 3. O mesmo aplica-se para quando não existem movimentos válidos, sendo os nomes dos predicados adaptados para `choose_piece`, `choose_piece_easy`, `choose_piece_greedy` e `choose_piece_hard`, respetivamente.
 
-## Conclusões
+### Conclusões
 
 Em suma, finalizado o trabalho prático, retiramos duas principais conclusões.
 
@@ -229,7 +233,7 @@ Em primeiro lugar, sabemos que o programa tem limitações, nomeadamente a demor
 
 Em segundo lugar, temos também conhecimento de quais seriam as melhorias possíveis para o programa. Ora, na linha da conclusão anterior, a principal melhoria a efetuar seria aumentar a eficiência dos algoritmos dos *bots*, encontrando métodos menos complexos e mais rápidos para realizar o pretendido. Se tal fosse possível, poderíamos igualmente aumentar a profunidade da análise do *hard bot*, tornando-o ainda mais inteligente e difícil de derrotar.
 
-## Bibliografia
+### Bibliografia
 
 A bibliografia consultada para a elaboração do trabalho prático foi:
 
